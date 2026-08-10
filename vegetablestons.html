@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VegetableTonnes | Institutional Bulk Agri-Marketplace</title>
+    <style>
+        :root {
+            /* Palette Derived Directly From Logo */
+            --primary: #15803d;        /* Fresh Produce Green */
+            --primary-dark: #116530;   /* Deep Leaves Green */
+            --accent-orange: #f97316;  /* Carrot / High-Bid Orange */
+            --accent-red: #e11d48;     /* Tomato Red */
+            --brand-navy: #1e293b;     /* Logo Scale Ring & Header Slate */
+            --steel-grey: #475569;    /* Tonnage Weight Grey */
+            --bg-light: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Navigation Header */
+        header {
+            background-color: var(--brand-navy);
+            color: white;
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .brand-logo img {
+            height: 48px;
+            width: 48px;
+            object-fit: contain;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+
+        .brand-name span {
+            color: #4ade80; /* Light Green Accent */
+        }
+
+        .brand-sub {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nav-link {
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Layout Container */
+        .container {
+            max-width: 1240px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            position: relative;
+            background: linear-gradient(rgba(30, 41, 59, 0.88), rgba(15, 23, 42, 0.92)), 
+                        url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+            color: white;
+            padding: 4.5rem 2rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+        }
+
+        .hero-banner h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-banner h1 span {
+            color: var(--accent-orange);
+        }
+
+        .hero-banner p {
+            font-size: 1.15rem;
+            color: #cbd5e1;
+            max-width: 760px;
+            margin: 0 auto 2rem auto;
+            line-height: 1.6;
+        }
+
+        /* Tile Grids & Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        /* Interactive Dynamic Hero Tiles */
+        .tile-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .tile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary);
+        }
+
+        .tile-img {
+            height: 180px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .tile-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tile-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--brand-navy);
+        }
+
+        .tile-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .tile-action {
+            margin-top: auto;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.85rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-orange {
+            background: var(--accent-orange);
+        }
+
+        .btn-orange:hover {
+            background: #ea580c;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.825rem;
+            border-radius: 6px;
+        }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-main);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-success { background: #d1fae5; color: #047857; }
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        .badge-live { background: #fee2e2; color: var(--accent-red); animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.925rem;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Toast & Modal */
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: var(--brand-navy);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+
+        .hidden { display: none !important; }
+
+        footer {
+            background: var(--brand-navy);
+            color: #94a3b8;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.875rem;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="brand-logo" onclick="navigateTo('home-page')">
+            <img src="Gemini_Generated_Image_qw93ewqw93ewqw93.png" alt="VegetableTonnes Logo" onerror="this.src='https://via.placeholder.com/48?text=VT'">
+            <div class="brand-text">
+                <div class="brand-name">VEGETABLE<span>TONNES</span></div>
+                <div class="brand-sub">Wholesale Produce Supply</div>
+            </div>
+        </div>
+
+        <nav>
+            <button class="nav-link active" id="nav-home-page" onclick="navigateTo('home-page')">Home</button>
+            <button class="nav-link" id="nav-registration-page" onclick="navigateTo('registration-page')">Buyer Registration</button>
+            <button class="nav-link" id="nav-auction-page" onclick="navigateTo('auction-page')">Live Auction</button>
+            <button class="nav-link" id="nav-dashboard-page" onclick="navigateTo('dashboard-page')">Buyer Dashboard</button>
+            <button class="nav-link" id="nav-about-page" onclick="navigateTo('about-page')">About Us</button>
+        </nav>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="container">
+
+        <!-- ================= 1. HOME PAGE ================= -->
+        <section id="home-page">
+            
+            <!-- Main Hero Banner -->
+            <div class="hero-banner">
+                <h1>Bulk Agri-Procurement by the <span>Tonne</span></h1>
+                <p>Direct farm-gate access to daily Tonnage Auctions for fresh Tomatoes and Potatoes. Transparent bidding, verified GST buyers, and streamlined logistics pickup.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-orange" onclick="navigateTo('registration-page')">Register Business Entity</button>
+                    <button class="btn btn-outline" style="color: white; border-color: #64748b;" onclick="navigateTo('auction-page')">Explore Live Tonnage Bids</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Interactive Feature Tiles -->
+            <div style="margin-bottom: 1rem;">
+                <h2 style="font-size: 1.4rem; color: var(--brand-navy); margin-bottom: 1.25rem;">Marketplace Trading Desks</h2>
+            </div>
+
+            <div class="grid-4" style="margin-bottom: 2.5rem;">
+                <!-- Tile 1: Tomato Auctions -->
+                <div class="tile-card" onclick="navigateTo('auction-page')">
+                    <img src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80" alt="Red Hybrid Tomatoes" class="tile-img">
+                    <div class="tile-body">
+                        <span class="badge badge-live" style="width: max-content; margin-bottom: 8px;">180 Tons Active</span>
+                        <div class="tile-title">Red Hybrid Tomatoes</div>
+                        <div class="tile-desc">Firm, sorted, uniform red tomatoes suitable for retail chains, ketchup processing, and regional mandis.</div>
+                        <div class="tile-action">Bid Now &rarr;</div>
+                    </div>
+                </div>
+
+                <!-- Tile 2: Potato Auctions -->
+                <div class="tile-card" onclick="navigateTo('auction-page')">
+                    <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=80" alt="Cold Storage Potatoes" class="tile-img">
+                    <div class="tile-body">
+                        <span class="badge badge-blue" style="width: max-content; margin-bottom: 8px;">320 Tons Active</span>
+                        <div class="tile-title">Jyoti Cold-Storage Potatoes</div>
+                        <div class="tile-desc">Sugar-free grade potatoes, 45mm+ size. Ideal for chip manufacturing, commercial kitchens, and bulk resale.</div>
+                        <div class="tile-action">Bid Now &rarr;</div>
+                    </div>
+                </div>
+
+                <!-- Tile 3: GST Onboarding -->
+                <div class="tile-card" onclick="navigateTo('registration-page')">
+                    <img src="https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80" alt="Business Verification" class="tile-img">
+                    <div class="tile-body">
+                        <span class="badge badge-success" style="width: max-content; margin-bottom: 8px;">Instant ID</span>
+                        <div class="tile-title">Instant GSTIN Onboarding</div>
+                        <div class="tile-desc">Verified B2B account setup. Input your PAN and GST credentials to generate a unique commercial buyer pass.</div>
+                        <div class="tile-action">Register Enterprise &rarr;</div>
+                    </div>
+                </div>
+
+                <!-- Tile 4: Logistics & Dispatch -->
+                <div class="tile-card" onclick="navigateTo('dashboard-page')">
+                    <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80" alt="Logistics Truck Loading" class="tile-img">
+                    <div class="tile-body">
+                        <span class="badge badge-pending" style="width: max-content; margin-bottom: 8px;">Self-Managed Yard</span>
+                        <div class="tile-title">Yard Vehicle Pickup</div>
+                        <div class="tile-desc">Assign driver and vehicle numbers post order approval to receive weighbridge dock loading passes.</div>
+                        <div class="tile-action">Manage Logistics &rarr;</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Platform Metrics Section -->
+            <div class="card" style="background: white; border-top: 4px solid var(--primary); text-align: center; padding: 2.25rem;">
+                <h2 style="margin-bottom: 1.5rem; color: var(--brand-navy);">VegetableTonnes Wholesale Operations</h2>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1.5rem;">
+                    <div>
+                        <h1 style="color: var(--primary); font-size: 2.4rem;">500+</h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Metric Tons Auctioned Daily</p>
+                    </div>
+                    <div>
+                        <h1 style="color: var(--accent-orange); font-size: 2.4rem;">1,400+</h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Verified Enterprise Buyers</p>
+                    </div>
+                    <div>
+                        <h1 style="color: var(--steel-grey); font-size: 2.4rem;">100%</h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">GST Tax Compliance</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2. BUYER REGISTRATION ================= -->
+        <section id="registration-page" class="hidden">
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div class="card-title" style="color: var(--brand-navy);">
+                    <span>Commercial Buyer Registration</span>
+                    <span class="badge badge-blue">Tax Compliant</span>
+                </div>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Enter your verified corporate details. Upon submission, a unique institutional Buyer ID will be generated for your business account.
+                </p>
+
+                <form id="registration-form" onsubmit="submitRegistration(event)">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Authorized Representative Name</label>
+                            <input type="text" id="reg-name" placeholder="e.g. Suresh Kumar" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Registered Business / Enterprise Name</label>
+                            <input type="text" id="reg-company" placeholder="e.g. Apex Agri Foods Pvt Ltd" required>
+                        </div>
+                        <div class="form-group">
+                            <label>GSTIN Number</label>
+                            <input type="text" id="reg-gstin" placeholder="29ABCDE1234F1ZH" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Enter valid 15-digit GSTIN" required>
+                        </div>
+                        <div class="form-group">
+                            <label>PAN Verification Number</label>
+                            <input type="text" id="reg-pan" placeholder="ABCDE1234F" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" required>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Business / Warehouse Address</label>
+                            <input type="text" id="reg-location" placeholder="e.g. Plot 42, APMC Yard, Yeshwanthpur, Bengaluru" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-orange btn-block" style="margin-top: 1rem;">Complete Registration & Generate Buyer ID</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= 3. LIVE AUCTION PAGE ================= -->
+        <section id="auction-page" class="hidden">
+            <div class="card-title">
+                <span style="color: var(--brand-navy);">Daily Tonnage Bulk Auctions</span>
+                <span class="badge badge-live">Live Bidding Desk</span>
+            </div>
+
+            <!-- Profile Banner if Registered -->
+            <div id="auction-profile-alert" class="card hidden" style="background: #ecfdf5; border-color: #a7f3d0; padding: 1rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <strong id="auc-alert-company" style="color: var(--primary-dark);">Company Name</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 10px;" id="auc-alert-id">Buyer ID: VT-BUYER-XXXX</span>
+                    </div>
+                    <span class="badge badge-success">Active Buyer Desk</span>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Tomato Auction Lot -->
+                <div class="tile-card" style="cursor: default;">
+                    <img src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=800&q=80" alt="Red Tomatoes" class="tile-img" style="height: 200px;">
+                    <div class="tile-body">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h3 style="font-size: 1.2rem; color: var(--brand-navy);">Red Hybrid Tomatoes</h3>
+                            <span class="badge badge-blue">Stock: 180 Tons</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Firm, Uniform Red, 50-60mm Diameter | Grade A</p>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1.25rem; font-size: 0.9rem; background: #f8fafc; padding: 10px; border-radius: 8px;">
+                            <span>Base Price: <strong style="color: var(--primary);">₹18,500 / Ton</strong></span>
+                            <span>Min Order: <strong>2 Tons</strong></span>
+                        </div>
+
+                        <form onsubmit="placeBid(event, 'Tomatoes', 18500)">
+                            <div class="form-group">
+                                <label>Required Quantity (Metric Tons)</label>
+                                <input type="number" id="qty-Tomatoes" min="2" max="180" placeholder="e.g. 10" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Your Bid Offer Price per Ton (₹)</label>
+                                <input type="number" id="price-Tomatoes" min="12000" placeholder="e.g. 18700" required>
+                            </div>
+                            <button type="submit" class="btn btn-orange btn-block">Submit Tomato Bid</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Potato Auction Lot -->
+                <div class="tile-card" style="cursor: default;">
+                    <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=800&q=80" alt="Cold Storage Potatoes" class="tile-img" style="height: 200px;">
+                    <div class="tile-body">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h3 style="font-size: 1.2rem; color: var(--brand-navy);">Jyoti Cold-Storage Potatoes</h3>
+                            <span class="badge badge-blue">Stock: 320 Tons</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Sugar-Free Grade, 45mm+ Size | High Shelf Life</p>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1.25rem; font-size: 0.9rem; background: #f8fafc; padding: 10px; border-radius: 8px;">
+                            <span>Base Price: <strong style="color: var(--primary);">₹15,000 / Ton</strong></span>
+                            <span>Min Order: <strong>3 Tons</strong></span>
+                        </div>
+
+                        <form onsubmit="placeBid(event, 'Potatoes', 15000)">
+                            <div class="form-group">
+                                <label>Required Quantity (Metric Tons)</label>
+                                <input type="number" id="qty-Potatoes" min="3" max="320" placeholder="e.g. 25" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Your Bid Offer Price per Ton (₹)</label>
+                                <input type="number" id="price-Potatoes" min="10000" placeholder="e.g. 15200" required>
+                            </div>
+                            <button type="submit" class="btn btn-orange btn-block">Submit Potato Bid</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 4. BUYER DASHBOARD ================= -->
+        <section id="dashboard-page" class="hidden">
+            <!-- Unregistered View -->
+            <div id="dash-unregistered" class="card" style="text-align: center; padding: 3rem;">
+                <h2 style="color: var(--brand-navy);">No Active Buyer Account Found</h2>
+                <p style="color: var(--text-muted); margin: 0.75rem 0 1.5rem 0;">Please register your corporate details to view placed bids, order status, and dispatch vehicles.</p>
+                <button class="btn btn-orange" onclick="navigateTo('registration-page')">Go to Buyer Registration</button>
+            </div>
+
+            <!-- Registered Dashboard View -->
+            <div id="dash-content" class="hidden">
+                <div class="card" style="background: var(--brand-navy); color: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <span class="badge badge-success" style="margin-bottom: 5px; display: inline-block;">Verified Institutional Account</span>
+                            <h2 id="dash-company-name">Company Name</h2>
+                            <p style="color: #94a3b8; font-size: 0.875rem;" id="dash-buyer-id">User ID: VT-BUYER-0000</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 0.8rem; color: #94a3b8;">Registered Hub Location</p>
+                            <p id="dash-location" style="font-size: 0.95rem; font-weight: 600;">Location</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title" style="color: var(--brand-navy);">Tonnage Bids & Logistics Tracking</div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Commodity</th>
+                                    <th>Quantity</th>
+                                    <th>Bid Offer / Ton</th>
+                                    <th>Total Value</th>
+                                    <th>Status</th>
+                                    <th>Logistics & Gate Pass</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <!-- Dynamic JS Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 5. ABOUT US PAGE ================= -->
+        <section id="about-page" class="hidden">
+            <div class="card">
+                <div class="card-title" style="color: var(--brand-navy);">About VegetableTonnes Platform</div>
+                <p style="line-height: 1.6; color: var(--text-main); margin-bottom: 1.5rem;">
+                    <strong>VegetableTonnes</strong> is a B2B agricultural trading infrastructure engineered to eliminate multiple layers of intermediaries in bulk vegetable supply chains. We connect institutional buyers—including food processing plants, hypermarket chains, hotels, and major wholesale distributors—directly with verified regional packhouses and farming clusters.
+                </p>
+
+                <h3 style="margin-bottom: 1rem; color: var(--primary-dark);">Operational Pillars</h3>
+                <div class="grid-3" style="margin-bottom: 2rem;">
+                    <div style="border: 1px solid var(--border); padding: 1.25rem; border-radius: 10px; background: #f8fafc;">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--brand-navy);">01. Grade Standardization</h4>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">Every metric ton of Tomatoes and Potatoes listed undergoes physical sorting and electronic quality auditing.</p>
+                    </div>
+                    <div style="border: 1px solid var(--border); padding: 1.25rem; border-radius: 10px; background: #f8fafc;">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--brand-navy);">02. Transparent Discovery</h4>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">Real-time bulk bidding ensures fair market discovery driven strictly by supply volume and buyer demand.</p>
+                    </div>
+                    <div style="border: 1px solid var(--border); padding: 1.25rem; border-radius: 10px; background: #f8fafc;">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--brand-navy);">03. Yard Fulfillment</h4>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);">Buyer-side vehicle assignment enables streamlined weighbridge entry and rapid dock loading.</p>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 0.75rem; color: var(--brand-navy);">Tax & Legal Compliance</h3>
+                <p style="line-height: 1.6; color: var(--text-muted); font-size: 0.95rem;">
+                    We operate under strict tax compliance standards. All participating buyers must hold valid GSTIN and PAN registration certificates to ensure frictionless commercial invoicing and weighbridge verification.
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Vehicle Details Modal -->
+    <div id="vehicle-modal" class="modal-overlay hidden">
+        <div class="card" style="width: 100%; max-width: 450px; margin: 0;">
+            <div class="card-title" style="color: var(--brand-navy);">Assign Pickup Vehicle</div>
+            <p style="font-size:0.875rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Enter details of the truck dispatched to the VegetableTonnes Hub for loading pass generation.
+            </p>
+            <form onsubmit="submitVehicleDetails(event)">
+                <input type="hidden" id="modal-order-id">
+                <div class="form-group">
+                    <label>Vehicle / Truck Number</label>
+                    <input type="text" id="veh-number" placeholder="e.g. KA-01-EQ-9821" required>
+                </div>
+                <div class="form-group">
+                    <label>Driver Mobile Number</label>
+                    <input type="tel" id="veh-driver" placeholder="e.g. +91 98765 43210" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
+                    <button type="submit" class="btn btn-orange btn-block">Generate Gate Pass</button>
+                    <button type="button" onclick="closeVehicleModal()" class="btn btn-outline btn-block">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Action logged successfully!</div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 VegetableTonnes B2B Logistics Platform. All Rights Reserved.
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State Management
+        let currentBuyer = null;
+        let orders = [];
+
+        // Single Page Navigation Handler
+        function navigateTo(pageId) {
+            const pages = ['home-page', 'registration-page', 'auction-page', 'dashboard-page', 'about-page'];
+            pages.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+
+            document.querySelectorAll('.nav-link').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(pageId).classList.remove('hidden');
+            
+            const activeBtn = document.getElementById('nav-' + pageId);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (pageId === 'dashboard-page') {
+                renderDashboard();
+            } else if (pageId === 'auction-page') {
+                updateAuctionView();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Registration Handler
+        function submitRegistration(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value.trim();
+            const company = document.getElementById('reg-company').value.trim();
+            const gstin = document.getElementById('reg-gstin').value.trim().toUpperCase();
+            const pan = document.getElementById('reg-pan').value.trim().toUpperCase();
+            const location = document.getElementById('reg-location').value.trim();
+
+            const buyerId = 'VT-BUY-' + Math.floor(1000 + Math.random() * 9000);
+
+            currentBuyer = { buyerId, name, company, gstin, pan, location };
+
+            showToast(`Registration Successful! User ID: ${buyerId}`);
+            navigateTo('auction-page');
+        }
+
+        function updateAuctionView() {
+            const alertCard = document.getElementById('auction-profile-alert');
+            if (currentBuyer) {
+                alertCard.classList.remove('hidden');
+                document.getElementById('auc-alert-company').innerText = currentBuyer.company;
+                document.getElementById('auc-alert-id').innerText = `Buyer ID: ${currentBuyer.buyerId} | GSTIN: ${currentBuyer.gstin}`;
+            } else {
+                alertCard.classList.add('hidden');
+            }
+        }
+
+        // Bidding Handler
+        function placeBid(e, commodity, basePrice) {
+            e.preventDefault();
+
+            if (!currentBuyer) {
+                alert("Please complete Buyer Registration before bidding.");
+                navigateTo('registration-page');
+                return;
+            }
+
+            const qty = parseFloat(document.getElementById(`qty-${commodity}`).value);
+            const price = parseFloat(document.getElementById(`price-${commodity}`).value);
+            const total = qty * price;
+
+            const newOrder = {
+                id: 'ORD-' + Math.floor(10000 + Math.random() * 90000),
+                buyerId: currentBuyer.buyerId,
+                company: currentBuyer.company,
+                commodity: commodity,
+                quantity: qty,
+                bidPrice: price,
+                totalValuation: total,
+                status: 'Order Requested',
+                vehicleNo: null,
+                driverPhone: null
+            };
+
+            orders.push(newOrder);
+
+            document.getElementById(`qty-${commodity}`).value = '';
+            document.getElementById(`price-${commodity}`).value = '';
+
+            showToast(`Bid Order Submitted for ${qty} Tons of ${commodity}!`);
+            navigateTo('dashboard-page');
+        }
+
+        // Dashboard Handler
+        function renderDashboard() {
+            const unregView = document.getElementById('dash-unregistered');
+            const dashContent = document.getElementById('dash-content');
+
+            if (!currentBuyer) {
+                unregView.classList.remove('hidden');
+                dashContent.classList.add('hidden');
+                return;
+            }
+
+            unregView.classList.add('hidden');
+            dashContent.classList.remove('hidden');
+
+            document.getElementById('dash-company-name').innerText = currentBuyer.company;
+            document.getElementById('dash-buyer-id').innerText = `User ID: ${currentBuyer.buyerId} | GSTIN: ${currentBuyer.gstin}`;
+            document.getElementById('dash-location').innerText = currentBuyer.location;
+
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = '';
+
+            const myOrders = orders.filter(o => o.buyerId === currentBuyer.buyerId);
+
+            if (myOrders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding:2rem;">No active bids found. Visit the Live Auction to place bids.</td></tr>`;
+                return;
+            }
+
+            myOrders.forEach(o => {
+                let statusBadge = `<span class="badge badge-pending">Order Requested</span>`;
+                let vehicleCell = ``;
+
+                if (o.status === 'Order Requested') {
+                    vehicleCell = `<button onclick="simulateSellerAcceptance('${o.id}')" class="btn btn-outline btn-sm">Simulate Order Approval</button>`;
+                } else if (o.status === 'Order Complete') {
+                    statusBadge = `<span class="badge badge-success">Order Complete</span>`;
+                    
+                    if (!o.vehicleNo) {
+                        vehicleCell = `<button onclick="openVehicleModal('${o.id}')" class="btn btn-orange btn-sm">Assign Vehicle</button>`;
+                    } else {
+                        vehicleCell = `
+                            <div style="font-size:0.825rem;">
+                                <strong style="color:var(--brand-navy);">${o.vehicleNo}</strong><br>
+                                <span style="color:var(--text-muted);">Driver: ${o.driverPhone}</span><br>
+                                <span class="badge badge-blue" style="font-size:0.65rem; margin-top:3px; display:inline-block;">Gate Pass Issued</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${o.id}</strong></td>
+                        <td>${o.commodity}</td>
+                        <td>${o.quantity} Tons</td>
+                        <td>₹${o.bidPrice.toLocaleString()} / Ton</td>
+                        <td>₹${o.totalValuation.toLocaleString()}</td>
+                        <td>${statusBadge}</td>
+                        <td>${vehicleCell}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Simulate Acceptance of Order
+        function simulateSellerAcceptance(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = 'Order Complete';
+                showToast(`Order ${orderId} Accepted by VegetableTonnes!`);
+                renderDashboard();
+            }
+        }
+
+        // Dispatch Modal Handlers
+        function openVehicleModal(orderId) {
+            document.getElementById('modal-order-id').value = orderId;
+            document.getElementById('vehicle-modal').classList.remove('hidden');
+        }
+
+        function closeVehicleModal() {
+            document.getElementById('vehicle-modal').classList.add('hidden');
+        }
+
+        function submitVehicleDetails(e) {
+            e.preventDefault();
+            const orderId = document.getElementById('modal-order-id').value;
+            const vehNo = document.getElementById('veh-number').value.trim().toUpperCase();
+            const driver = document.getElementById('veh-driver').value.trim();
+
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.vehicleNo = vehNo;
+                order.driverPhone = driver;
+                showToast(`Vehicle ${vehNo} assigned! Dispatch Gate Pass Issued.`);
+                closeVehicleModal();
+                renderDashboard();
+            }
+        }
+
+        // Toast Helper
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

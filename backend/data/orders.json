@@ -1,0 +1,23 @@
+{
+  "orders": [
+    {
+      "id": "ORD-45821",
+      "bidId": "bid-002",
+      "auctionId": "auc-002",
+      "buyerId": "buyer-001",
+      "buyerCompany": "Apex Agri Foods Pvt Ltd",
+      "farmerId": "farmer-002",
+      "farmerName": "Suresh Patel",
+      "commodity": "Jyoti Cold-Storage Potatoes",
+      "quantity": 50,
+      "bidPrice": 15800,
+      "totalValue": 790000,
+      "status": "approved",
+      "vehicleNo": null,
+      "driverPhone": null,
+      "gatePassIssued": false,
+      "createdAt": "2026-08-05T09:00:00.000Z",
+      "updatedAt": "2026-08-05T10:00:00.000Z"
+    }
+  ]
+}
