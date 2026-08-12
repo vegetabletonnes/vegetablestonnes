@@ -35,7 +35,7 @@ const Home = () => {
   useEffect(() => {
     axios.get('/api/auctions?status=active')
       .then(r => setAuctions(r.data.slice(0, 3)))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const features = [
@@ -78,13 +78,13 @@ const Home = () => {
             </div>
 
             <h1 style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 900, lineHeight: 1.15, marginBottom: '1.25rem' }}>
-              <span className="gradient-text">Bulk Produce Auctions</span>{' '}
-              <span style={{ color: '#0f172a' }}>Curated for</span>{' '}
-              <span className="gradient-text-orange">Institutional Buyers</span>
+              <span className="gradient-text">Connecting top commercial </span>{' '}
+              <span style={{ color: '#0f172a' }}>buyers directly to bulk</span>{' '}
+              <span className="gradient-text-orange">produce auctions.</span>
             </h1>
 
             <p style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', color: '#475569', maxWidth: '680px', margin: '0 auto 2rem', lineHeight: 1.7 }}>
-              Farmers partner directly with VegetableTonnes company leadership. We quality-audit the crop, list tonnage, and open live competitive auctions for verified bulk buyers.
+              VegetableTonnes is a direct B2B agricultural trading platform built for institutional buyers-including hypermarket networks, food processors, hotel chains, and wholesale distributors. We digitize bulk vegetable procurement by connecting commercial buyers directly with regional packhouses through live online tonnage auctions.
             </p>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>

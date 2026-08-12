@@ -227,58 +227,7 @@ const AuctionDetail = () => {
               </div>
             )}
 
-            {/* Live Leaderboard */}
-            <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                <h4 style={{ fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FaTrophy style={{ color: '#fbbf24' }} /> Bid Leaderboard
-                </h4>
-                <span className="badge badge-green">{bids.length} Bids</span>
-              </div>
 
-              {bids.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>
-                  <div style={{ fontSize: '1.8rem', color: '#22c55e', marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
-                    <FaGavel />
-                  </div>
-                  <p>No bids yet. Be the first!</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
-                  {bids.map((bid, i) => (
-                    <motion.div
-                      key={bid.id}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      style={{
-                        background: i === 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
-                        border: i === 0 ? '1px solid rgba(251,191,36,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: '10px',
-                        padding: '0.85rem 1rem',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.9rem', color: i === 0 ? '#fbbf24' : '#6b7280' }}>#{i+1}</span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0f172a' }}>{bid.buyerCompany || bid.buyerName}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{bid.quantity} Tons</div>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: 800, color: i === 0 ? '#fbbf24' : '#22c55e', fontFamily: 'Outfit, sans-serif', fontSize: '1rem' }}>
-                          ₹{bid.pricePerTon?.toLocaleString()}
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>per Ton</div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
           </motion.div>
         </div>
       </div>

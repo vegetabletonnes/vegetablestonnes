@@ -13,23 +13,20 @@ import toast from 'react-hot-toast';
 const Logo = () => (
   <Link to="/" className="logo-link" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
     <img
-      src="/logo2.png"
+      src="./logo-vt.png"
       alt="VegetableTonnes Logo"
       style={{
-        height: 48,
-        width: 48,
+        height: 65,
+        width: 65,
         objectFit: 'contain',
         borderRadius: '10px',
         filter: 'drop-shadow(0 0 8px rgba(20,184,166,0.35))',
       }}
     />
     <div>
-      <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.15rem', color: '#0F172A' }}>
+      <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 1000, fontSize: '1.15rem', color: '#0F172A' }}>
         Vegetable<span style={{ color: '#14B8A6' }}>Tonnes</span>
       </span>
-      <div style={{ fontSize: '0.6rem', color: '#64748B', letterSpacing: '1.5px', fontWeight: 600, textTransform: 'uppercase', lineHeight: 1 }}>
-        B2B Agricultural Exchange
-      </div>
     </div>
   </Link>
 );

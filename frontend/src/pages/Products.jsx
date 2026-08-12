@@ -64,48 +64,14 @@ const ProductCard = ({ item }) => {
       <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div>
           <h3 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', marginBottom: '2px', color: '#0f172a' }}>{item.commodity}</h3>
-          <div style={{ fontSize: '0.8rem', color: '#0d9488', fontWeight: 600 }}>{item.variety}</div>
+          <div style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600, marginBottom: '6px' }}>{item.variety}</div>
+          <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>{item.description}</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-            <span style={{ color: '#64748B' }}>Available Stock</span>
-            <span style={{ fontWeight: 600, color: '#0f172a' }}>{item.availableTons} <span style={{ color: '#64748B' }}>/ {item.totalQuantityTons} Tons</span></span>
-          </div>
-          <div style={{ height: 5, borderRadius: 999, background: 'rgba(15,23,42,0.08)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${availPct}%`, borderRadius: 999, background: `linear-gradient(90deg, ${gradeColor}, ${gradeColor}99)` }} />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748B' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748B', marginTop: 'auto' }}>
           <FaLocationDot style={{ color: '#14B8A6', fontSize: '0.72rem' }} />
           <span>{item.warehouse}</span>
         </div>
-
-        <div className="divider" style={{ margin: '0' }} />
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: '0.72rem', color: '#64748B', marginBottom: '2px' }}>Base Price</div>
-            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.25rem', color: gradeColor }}>
-              ₹{item.basePricePerTon?.toLocaleString()}
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 400, color: '#64748B' }}>/Ton</span>
-            </div>
-          </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748B', textAlign: 'right' }}>
-            <div>SKU</div>
-            <div style={{ color: '#0f766e', fontWeight: 700, fontFamily: 'monospace' }}>{item.sku}</div>
-          </div>
-        </div>
-
-        <Link
-          to="/auctions"
-          className="btn btn-primary btn-block"
-          id={`product-bid-btn-${item.id}`}
-          style={{ marginTop: 'auto' }}
-        >
-          <FaGavel /> Add to Bid
-        </Link>
       </div>
     </motion.div>
   );
@@ -155,7 +121,7 @@ const Products = () => {
             <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, marginBottom: '0.75rem' }}>
               Fresh <span className="gradient-text">Produce Catalog</span>
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.55)', maxWidth: 560, lineHeight: 1.8 }}>
+            <p style={{ color: '#475569', maxWidth: 560, lineHeight: 1.8, marginTop: '0.5rem' }}>
               Browse verified wholesale vegetable inventory. All commodities are graded and warehouse-ready. Place bids directly on live auctions.
             </p>
           </motion.div>
