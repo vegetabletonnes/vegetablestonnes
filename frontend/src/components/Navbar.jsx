@@ -77,7 +77,14 @@ const Navbar = () => {
     { to: '/products', label: 'Products' },
     { to: '/auctions', label: 'Auctions' },
     { to: '/how-it-works', label: 'How It Works' },
-    { to: '/about', label: 'About' },
+    { 
+      label: 'About', 
+      subLinks: [
+        { to: '/about', label: 'About Us' },
+        { to: '/gallery', label: 'Gallery' },
+        { to: '/news', label: 'News & Articles' }
+      ]
+    },
   ];
 
   const accountMenuItems = (() => {
@@ -125,9 +132,42 @@ const Navbar = () => {
         {/* Desktop Nav Links */}
         <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
           {publicLinks.map(l => (
-            <NavLink key={l.to} to={l.to} end={l.to === '/'} style={navLinkStyle}>
-              {l.label}
-            </NavLink>
+            l.subLinks ? (
+              <div key={l.label} className="nav-dropdown-container" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center' }}>
+                <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', ...navLinkStyle({ isActive: location.pathname.startsWith('/about') || location.pathname.startsWith('/gallery') || location.pathname.startsWith('/news') }) }}>
+                  {l.label} <FaChevronDown style={{ fontSize: '0.65em' }} />
+                </span>
+                <div className="nav-dropdown-menu" style={{
+                  position: 'absolute', top: '100%', left: 0,
+                  background: 'rgba(255,255,255,0.98)',
+                  backdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(20,184,166,0.20)',
+                  borderRadius: '12px',
+                  boxShadow: '0 16px 48px rgba(0,0,0,0.1)',
+                  minWidth: '200px',
+                  display: 'none', flexDirection: 'column',
+                  padding: '0.5rem', zIndex: 1000
+                }}>
+                  {l.subLinks.map(sub => (
+                    <NavLink key={sub.to} to={sub.to} style={({ isActive }) => ({
+                      padding: '0.6rem 1rem', textDecoration: 'none',
+                      color: isActive ? '#14B8A6' : '#334155',
+                      fontWeight: isActive ? 600 : 500, fontSize: '0.88rem',
+                      borderRadius: '8px', transition: 'all 0.15s',
+                    })}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(20,184,166,0.10)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      {sub.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <NavLink key={l.to} to={l.to} end={l.to === '/'} style={navLinkStyle}>
+                {l.label}
+              </NavLink>
+            )
           ))}
         </div>
 
@@ -275,17 +315,38 @@ const Navbar = () => {
           >
             <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {publicLinks.map(l => (
-                <NavLink key={l.to} to={l.to} end={l.to === '/'} style={({ isActive }) => ({
-                  textDecoration: 'none',
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '9px',
-                  color: isActive ? '#14B8A6' : '#334155',
-                  fontWeight: isActive ? 600 : 400,
-                  fontSize: '0.9rem',
-                  background: isActive ? 'rgba(20,184,166,0.08)' : 'transparent',
-                })}>
-                  {l.label}
-                </NavLink>
+                l.subLinks ? (
+                  <div key={l.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ padding: '0.65rem 0.85rem', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {l.label}
+                    </div>
+                    {l.subLinks.map(sub => (
+                      <NavLink key={sub.to} to={sub.to} style={({ isActive }) => ({
+                        textDecoration: 'none',
+                        padding: '0.65rem 0.85rem 0.65rem 1.5rem',
+                        borderRadius: '9px',
+                        color: isActive ? '#14B8A6' : '#334155',
+                        fontWeight: isActive ? 600 : 400,
+                        fontSize: '0.9rem',
+                        background: isActive ? 'rgba(20,184,166,0.08)' : 'transparent',
+                      })}>
+                        {sub.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                ) : (
+                  <NavLink key={l.to} to={l.to} end={l.to === '/'} style={({ isActive }) => ({
+                    textDecoration: 'none',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '9px',
+                    color: isActive ? '#14B8A6' : '#334155',
+                    fontWeight: isActive ? 600 : 400,
+                    fontSize: '0.9rem',
+                    background: isActive ? 'rgba(20,184,166,0.08)' : 'transparent',
+                  })}>
+                    {l.label}
+                  </NavLink>
+                )
               ))}
               <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '0.5rem 0' }} />
               {user ? (
@@ -330,6 +391,9 @@ const Navbar = () => {
         }
         @media (min-width: 769px) {
           .show-mobile { display: none !important; }
+        }
+        .nav-dropdown-container:hover .nav-dropdown-menu {
+          display: flex !important;
         }
       `}</style>
     </nav>
