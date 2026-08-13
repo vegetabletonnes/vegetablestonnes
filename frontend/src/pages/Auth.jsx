@@ -46,9 +46,9 @@ const Auth = () => {
     setLoading(true);
     try {
       const res = await axios.post('/api/auth/register', { ...buyerForm, role: 'buyer' });
-      login(res.data.token, res.data.user);
-      toast.success(`Registration successful! Welcome ${res.data.user.name}`);
-      navigate('/dashboard');
+      toast.success(res.data.message || 'Registration submitted! We will email your Buyer ID after approval.');
+      setTab('login');
+      setBuyerForm({ name: '', email: '', password: '', company: '', gstin: '', pan: '', phone: '', location: '' });
     } catch (err) {
       toast.error(err.response?.data?.error || 'Registration failed');
     } finally {
@@ -161,8 +161,11 @@ const Auth = () => {
                   </div>
                 </div>
                 <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  {loading ? <><FaSpinner className="animate-spin" /> Registering...</> : <><FaUserPlus /> Register as Buyer</>}
+                  {loading ? <><FaSpinner className="animate-spin" /> Submitting...</> : <><FaUserPlus /> Submit Registration Request</>}
                 </button>
+                <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.75rem', textAlign: 'center' }}>
+                  After admin verifies your GSTIN &amp; company details, your Buyer ID will be emailed to you.
+                </p>
               </motion.form>
             )}
           </AnimatePresence>

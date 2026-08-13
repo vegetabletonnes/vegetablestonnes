@@ -7,6 +7,7 @@ import {
   FaSeedling, FaGavel, FaWarehouse, FaLeaf, FaArrowRight,
   FaMagnifyingGlass, FaFilter, FaLocationDot, FaStar,
 } from 'react-icons/fa6';
+import { DEFAULT_PRODUCTS } from '../data/defaultProducts';
 
 const gradeColors = {
   'S (Super)': '#F59E0B',
@@ -93,9 +94,12 @@ const Products = () => {
         if (filterGrade) params.grade = filterGrade;
         if (filterStatus) params.auctionStatus = filterStatus;
         const res = await axios.get('/api/inventory', { params });
-        setItems(res.data);
+        const apiItems = res.data || [];
+        const defaultIds = new Set(DEFAULT_PRODUCTS.map((p) => p.id));
+        const extra = apiItems.filter((p) => !defaultIds.has(p.id) && !p.isDefault);
+        setItems([...DEFAULT_PRODUCTS, ...extra]);
       } catch {
-        toast.error('Failed to load products');
+        setItems(DEFAULT_PRODUCTS);
       } finally {
         setLoading(false);
       }

@@ -2,18 +2,19 @@ import express from 'express';
 import supabase from '../db/supabase.js';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
+import { sendEmail } from '../utils/email.js';
+import { mapRowsToCamel, mapRowToCamel } from '../utils/transform.js';
 
 const router = express.Router();
 
-const logAdminAction = async (adminId, action, entityId, entityType, details = {}) => {
+const logAdminAction = async (adminId, action, targetId, targetTable, metadata = {}) => {
   try {
     await supabase.from('admin_logs').insert([{
-      adminId,
+      admin_id: adminId,
       action,
-      entityId,
-      entityType,
-      details,
-      createdAt: new Date().toISOString()
+      target_id: targetId,
+      target_table: targetTable,
+      metadata,
     }]);
   } catch (err) {
     console.error('Error logging admin action:', err);
@@ -32,43 +33,27 @@ const ensureOrderForApprovedBid = async (bidId) => {
   const { data: existingOrder } = await supabase
     .from('orders')
     .select('*')
-    .eq('bidId', bidId)
-    .single();
+    .eq('bid_id', bidId)
+    .maybeSingle();
 
   if (existingOrder) return existingOrder;
 
   const { data: auction } = await supabase
     .from('auctions')
     .select('*')
-    .eq('id', bid.auctionId)
+    .eq('id', bid.auction_id)
     .single();
 
-  const newOrderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
   const order = {
-    id: newOrderId,
-    bidId: bid.id,
-    auctionId: bid.auctionId,
-    buyerId: bid.buyerId,
-    buyerName: bid.buyerName,
-    buyerCompany: bid.buyerCompany,
-    buyerGstin: bid.buyerGstin || null,
-    farmerId: auction?.farmerId,
-    farmerName: auction?.farmerName,
-    commodity: auction?.productName || bid.commodity,
-    variety: auction?.variety || '',
-    grade: auction?.grade || '',
+    bid_id: bid.id,
+    auction_id: bid.auction_id,
+    buyer_id: bid.buyer_id,
+    farmer_id: auction?.farmer_id,
     quantity: bid.quantity,
-    bidPrice: bid.pricePerTon,
-    totalValue: bid.totalValue,
-    destination: bid.destination || '',
-    deliveryDate: bid.deliveryDate || null,
-    remarks: bid.remarks || '',
+    bid_price: bid.price_per_ton,
+    total_value: bid.total_value,
     status: 'accepted',
-    vehicleNo: null,
-    driverPhone: null,
-    gatePassIssued: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    gate_pass_issued: false,
   };
 
   const { data: insertedOrder, error: insertError } = await supabase
@@ -78,7 +63,7 @@ const ensureOrderForApprovedBid = async (bidId) => {
     .single();
 
   if (insertError) throw insertError;
-  return insertedOrder || order;
+  return insertedOrder;
 };
 
 router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
@@ -92,7 +77,8 @@ router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
       { count: totalAuctions },
       { count: totalBids },
       { count: pendingBids },
-      { data: orders }
+      { count: pendingRegistrations },
+      { data: orders },
     ] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'buyer'),
@@ -102,10 +88,11 @@ router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
       supabase.from('auctions').select('*', { count: 'exact', head: true }),
       supabase.from('bids').select('*', { count: 'exact', head: true }),
       supabase.from('bids').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('orders').select('totalValue, quantity')
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('registration_status', 'pending'),
+      supabase.from('orders').select('total_value, quantity'),
     ]);
 
-    const stats = {
+    res.json({
       totalUsers: totalUsers || 0,
       totalBuyers: totalBuyers || 0,
       totalFarmers: totalFarmers || 0,
@@ -114,12 +101,11 @@ router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
       totalAuctions: totalAuctions || 0,
       totalBids: totalBids || 0,
       pendingBids: pendingBids || 0,
+      pendingRegistrations: pendingRegistrations || 0,
       totalOrders: orders?.length || 0,
-      totalRevenue: orders?.reduce((sum, o) => sum + (Number(o.totalValue) || 0), 0) || 0,
-      totalTonsTraded: orders?.reduce((sum, o) => sum + (Number(o.quantity) || 0), 0) || 0
-    };
-
-    res.json(stats);
+      totalRevenue: orders?.reduce((sum, o) => sum + (Number(o.total_value) || 0), 0) || 0,
+      totalTonsTraded: orders?.reduce((sum, o) => sum + (Number(o.quantity) || 0), 0) || 0,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -127,12 +113,32 @@ router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
 
 router.get('/users', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const { data: users, error } = await supabase
+    const { status } = req.query;
+    let query = supabase
       .from('users')
-      .select('id, name, email, role, companyName, gstin, phone, address, verified, createdAt, updatedAt');
-    
+      .select('id, name, email, role, company, gstin, pan, phone, location, verified, buyer_id_ref, registration_status, created_at, updated_at');
+
+    if (status) query = query.eq('registration_status', status);
+
+    const { data: users, error } = await query;
     if (error) throw error;
-    res.json(users || []);
+    res.json(mapRowsToCamel(users || []));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/registrations/pending', verifyToken, requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, role, company, gstin, pan, phone, location, registration_status, created_at')
+      .eq('role', 'buyer')
+      .eq('registration_status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(mapRowsToCamel(data || []));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -140,20 +146,78 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
 
 router.put('/users/:id/verify', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const isVerified = typeof req.body?.verified === 'boolean' ? req.body.verified : true;
+    if (req.body?.reject === true) {
+      const { data: user, error } = await supabase
+        .from('users')
+        .update({ verified: false, registration_status: 'rejected' })
+        .eq('id', req.params.id)
+        .select()
+        .single();
 
+      if (error) throw error;
+
+      await sendEmail({
+        to: user.email,
+        subject: 'VegetableTonnes — Registration update',
+        text: `Dear ${user.name},\n\nWe were unable to approve your buyer registration at this time. Please contact our support team for more information.\n\n— VegetableTonnes Team`,
+      });
+
+      await logAdminAction(req.user.id, 'reject_registration', req.params.id, 'users');
+      return res.json({ message: 'Registration rejected.', user: mapRowToCamel(user) });
+    }
+
+    if (req.body?.approve === true) {
+      const { data: existing, error: fetchErr } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', req.params.id)
+        .single();
+
+      if (fetchErr || !existing) return res.status(404).json({ error: 'User not found' });
+
+      const buyerIdRef = existing.buyer_id_ref || `VT-BUY-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const { data: user, error } = await supabase
+        .from('users')
+        .update({
+          verified: true,
+          registration_status: 'approved',
+          buyer_id_ref: buyerIdRef,
+        })
+        .eq('id', req.params.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await createNotification(
+        user.id,
+        'registration_approved',
+        'Registration Approved',
+        `Welcome! Your Buyer ID is ${buyerIdRef}. You can now log in and place bids.`,
+        { buyerIdRef }
+      );
+
+      await sendEmail({
+        to: user.email,
+        subject: 'VegetableTonnes — Registration approved! Your Buyer ID',
+        text: `Dear ${user.name},\n\nCongratulations! Your buyer registration has been approved.\n\nYour Registered Buyer ID: ${buyerIdRef}\nCompany: ${user.company}\n\nYou can now log in at https://vegetablestonnes.vercel.app and participate in live auctions.\n\n— VegetableTonnes Team`,
+      });
+
+      await logAdminAction(req.user.id, 'approve_registration', req.params.id, 'users', { buyerIdRef });
+      return res.json({ message: 'Buyer approved! ID emailed to buyer.', user: mapRowToCamel(user), buyerIdRef });
+    }
+
+    const isVerified = typeof req.body?.verified === 'boolean' ? req.body.verified : true;
     const { data: user, error } = await supabase
       .from('users')
-      .update({ verified: isVerified, updatedAt: new Date().toISOString() })
+      .update({ verified: isVerified })
       .eq('id', req.params.id)
-      .select('id, name, email, role, companyName, gstin, phone, address, verified, createdAt, updatedAt')
+      .select()
       .single();
 
     if (error) throw error;
-
-    await logAdminAction(req.user?.id || 'admin', 'verify_user', req.params.id, 'user', { verified: isVerified });
-
-    res.json({ message: 'User verification updated.', user });
+    res.json({ message: 'User verification updated.', user: mapRowToCamel(user) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -163,7 +227,7 @@ router.get('/bids', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { data: bids, error } = await supabase.from('bids').select('*');
     if (error) throw error;
-    res.json(bids || []);
+    res.json(mapRowsToCamel(bids || []));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -171,10 +235,10 @@ router.get('/bids', verifyToken, requireAdmin, async (req, res) => {
 
 router.put('/bids/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+    const status = req.body.status;
     const { data: bid, error: bidError } = await supabase
       .from('bids')
-      .update(updateData)
+      .update({ status })
       .eq('id', req.params.id)
       .select()
       .single();
@@ -186,41 +250,24 @@ router.put('/bids/:id', verifyToken, requireAdmin, async (req, res) => {
     if (['approved', 'accepted'].includes(bid.status)) {
       order = await ensureOrderForApprovedBid(bid.id);
       createNotification(
-        bid.buyerId,
+        bid.buyer_id,
         'bid_accepted',
         'Bid Accepted',
-        `Your bid for ${bid.commodity || bid.auctionId} was accepted. Order ${order.id} is ready for payment.`,
-        { bidId: bid.id, orderId: order.id }
+        `Your bid was accepted. Order is ready for payment.`,
+        { bidId: bid.id, orderId: order?.id }
       );
     } else if (bid.status === 'rejected') {
       createNotification(
-        bid.buyerId,
+        bid.buyer_id,
         'bid_rejected',
         'Bid Rejected',
-        req.body.note || `Your bid for ${bid.commodity || bid.auctionId} was rejected.`,
-        { bidId: bid.id }
-      );
-    } else if (bid.status === 'counter_offered') {
-      createNotification(
-        bid.buyerId,
-        'counter_offer',
-        'Counter Offer Received',
-        `A revised offer of Rs.${Number(bid.counterPrice || 0).toLocaleString()}/ton has been sent for your bid.`,
-        { bidId: bid.id, counterPrice: bid.counterPrice }
-      );
-    } else if (bid.status === 'clarification_requested') {
-      createNotification(
-        bid.buyerId,
-        'counter_offer',
-        'Clarification Requested',
-        bid.clarificationNote || 'The procurement team has requested clarification on your bid.',
+        req.body.note || 'Your bid was rejected.',
         { bidId: bid.id }
       );
     }
 
-    await logAdminAction(req.user?.id || 'admin', 'update_bid_status', bid.id, 'bid', { status: bid.status });
-
-    res.json({ ...bid, orderId: order?.id || null });
+    await logAdminAction(req.user.id, 'update_bid_status', bid.id, 'bids', { status: bid.status });
+    res.json({ ...mapRowToCamel(bid), orderId: order?.id || null });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -230,7 +277,7 @@ router.get('/orders', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { data: orders, error } = await supabase.from('orders').select('*');
     if (error) throw error;
-    res.json(orders || []);
+    res.json(mapRowsToCamel(orders || []));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

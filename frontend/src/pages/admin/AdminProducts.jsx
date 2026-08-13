@@ -4,7 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FaBoxOpen, FaPlus, FaMagnifyingGlass, FaLocationDot, FaPenToSquare, FaTrash, FaXmark } from 'react-icons/fa6';
 
-const CATEGORIES = ['Root Vegetables', 'Leafy Greens', 'Nightshades', 'Allium', 'Cruciferous', 'Gourds', 'Other'];
+const CATEGORIES = ['Tomatoes', 'Melons', 'Mangoes', 'Groundnuts', 'Root Vegetables', 'Leafy Greens', 'Nightshades', 'Gourds', 'Other'];
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);

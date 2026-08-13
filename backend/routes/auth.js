@@ -3,38 +3,43 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import supabase from '../db/supabase.js';
 import { generateToken } from '../middleware/auth.js';
+import { createNotification } from './notifications.js';
+import { sendEmail, getAdminEmail } from '../utils/email.js';
+import { mapRowToCamel } from '../utils/transform.js';
 
 const router = express.Router();
+const ADMIN_USER_ID = '11111111-1111-4111-a111-111111111111';
 
-// POST /api/auth/register
+const safeUser = (user) => {
+  const u = mapRowToCamel(user);
+  delete u.passwordHash;
+  return u;
+};
+
+// POST /api/auth/register — buyer only, pending admin approval
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role, company, gstin, pan, phone, location, farmSize } = req.body;
+    const { name, email, password, company, gstin, pan, phone, location } = req.body;
+    const role = 'buyer';
 
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: 'Name, email, password and role are required.' });
+    if (!name || !email || !password || !company || !gstin || !pan || !phone || !location) {
+      return res.status(400).json({ error: 'All buyer registration fields are required.' });
     }
 
-    // Check if user exists
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
-      .select('id')
+      .select('id, registration_status')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      return res.status(500).json({ error: 'Database error checking email.' });
-    }
-
+    if (checkError) return res.status(500).json({ error: 'Database error checking email.' });
     if (existingUser) {
       return res.status(409).json({ error: 'Email already registered.' });
     }
 
     const hashed = await bcrypt.hash(password, 10);
     const userId = uuidv4();
-    const buyerId = role === 'buyer' ? `VT-BUY-${Math.floor(1000 + Math.random() * 9000)}` : null;
 
-    // Insert user
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert([{
@@ -48,28 +53,42 @@ router.post('/register', async (req, res) => {
         pan,
         phone,
         location,
-        farm_size: role === 'farmer' ? farmSize : null,
-        buyer_id_ref: buyerId,
-        verified: false
+        buyer_id_ref: null,
+        verified: false,
+        registration_status: 'pending',
       }])
       .select()
       .single();
 
-    if (insertError) {
-      return res.status(500).json({ error: insertError.message });
-    }
+    if (insertError) return res.status(500).json({ error: insertError.message });
 
-    // Create profile
-    if (role === 'farmer') {
-      await supabase.from('farmer_profiles').insert([{ user_id: userId }]);
-    } else if (role === 'buyer') {
-      await supabase.from('buyer_profiles').insert([{ user_id: userId }]);
-    }
+    await supabase.from('buyer_profiles').insert([{ user_id: userId }]);
 
-    const token = generateToken(newUser);
-    const { password_hash: _, ...userSafe } = newUser;
+    await createNotification(
+      ADMIN_USER_ID,
+      'registration_pending',
+      'New Buyer Registration',
+      `${name} (${company}) has requested buyer registration. GSTIN: ${gstin}`,
+      { userId, email, company }
+    );
 
-    res.status(201).json({ message: 'Registration successful!', token, user: userSafe });
+    const adminEmail = getAdminEmail();
+    await sendEmail({
+      to: adminEmail,
+      subject: `[VegetableTonnes] New buyer registration — ${company}`,
+      text: `A new buyer has registered and needs approval.\n\nName: ${name}\nCompany: ${company}\nEmail: ${email}\nGSTIN: ${gstin}\nPAN: ${pan}\nPhone: ${phone}\nLocation: ${location}\n\nPlease review in the Admin Panel → Buyers.`,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: 'VegetableTonnes — Registration received',
+      text: `Dear ${name},\n\nThank you for registering with VegetableTonnes.\n\nYour buyer account is pending verification by our team. You will receive your registered Buyer ID by email once approved.\n\nCompany: ${company}\n\n— VegetableTonnes Team`,
+    });
+
+    res.status(201).json({
+      message: 'Registration submitted! Our team will verify your details and email your Buyer ID once approved.',
+      pending: true,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -99,8 +118,26 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
 
+    if (user.role === 'buyer') {
+      if (user.registration_status === 'pending') {
+        return res.status(403).json({
+          error: 'Your registration is pending admin approval. You will receive your Buyer ID by email once verified.',
+        });
+      }
+      if (user.registration_status === 'rejected') {
+        return res.status(403).json({
+          error: 'Your registration was not approved. Please contact VegetableTonnes support.',
+        });
+      }
+      if (!user.verified) {
+        return res.status(403).json({
+          error: 'Your account is not yet verified. Please wait for admin approval.',
+        });
+      }
+    }
+
     const token = generateToken(user);
-    const { password_hash: _, ...userSafe } = user;
+    const userSafe = safeUser(user);
 
     res.json({ message: 'Login successful!', token, user: userSafe });
   } catch (err) {

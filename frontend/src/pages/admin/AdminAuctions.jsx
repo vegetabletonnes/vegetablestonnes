@@ -87,6 +87,7 @@ const AdminAuctions = () => {
     try {
       const endTime = new Date(Date.now() + Number(formData.durationHours) * 3600 * 1000).toISOString();
       const payload = {
+        productId: formData.productId,
         productName: formData.productName,
         farmerName: formData.farmerName,
         location: formData.location,

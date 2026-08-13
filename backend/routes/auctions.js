@@ -1,21 +1,81 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import supabase from '../db/supabase.js';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
+import { mapRowToCamel, mapRowsToCamel } from '../utils/transform.js';
 
 const router = express.Router();
+const DEFAULT_FARMER_ID = '22222222-2222-4222-a222-222222222222';
+
+const formatAuction = (row, product) => {
+  const a = mapRowToCamel(row);
+  return {
+    ...a,
+    productName: product?.name || a.productName,
+    farmerName: product?.farmer_name,
+    location: product?.origin,
+    image: product?.image,
+    qualityGrade: product?.grade,
+    endTime: a.endTime,
+    basePrice: Number(a.basePrice || 0),
+    availableStock: Number(a.availableStock || 0),
+    currentHighestBid: Number(a.currentHighestBid || 0),
+  };
+};
+
+const toDbAuction = async (body) => {
+  let productId = body.productId || body.product_id;
+  let farmerId = body.farmerId || body.farmer_id;
+  let product = null;
+
+  if (productId) {
+    const { data } = await supabase.from('products').select('*').eq('id', productId).single();
+    product = data;
+    farmerId = data?.farmer_id || farmerId;
+  }
+
+  const stock = Number(body.availableStock || body.available_stock || body.totalStock || body.total_stock || 0);
+  const basePrice = Number(body.basePrice || body.base_price || product?.base_price || 0);
+  const now = new Date();
+  const endTime = body.endTime
+    ? new Date(body.endTime)
+    : new Date(now.getTime() + Number(body.durationHours || 24) * 3600 * 1000);
+
+  return {
+    row: {
+      product_id: productId || product?.id,
+      farmer_id: farmerId || DEFAULT_FARMER_ID,
+      base_price: basePrice,
+      current_highest_bid: basePrice,
+      total_stock: stock,
+      available_stock: stock,
+      min_order: Number(body.minOrder || body.min_order || 1),
+      start_time: body.startTime || now.toISOString(),
+      end_time: endTime.toISOString(),
+      status: body.status || 'active',
+      description: body.description || body.productName || product?.description,
+    },
+    product,
+  };
+};
 
 // GET /api/auctions
 router.get('/', async (req, res) => {
   try {
     const { status } = req.query;
     let query = supabase.from('auctions').select('*');
-    if (status) {
-      query = query.eq('status', status);
-    }
+    if (status) query = query.eq('status', status);
+
     const { data, error } = await query;
     if (error) throw error;
-    res.json(data);
+
+    const productIds = [...new Set((data || []).map((a) => a.product_id).filter(Boolean))];
+    let productsMap = {};
+    if (productIds.length) {
+      const { data: products } = await supabase.from('products').select('*').in('id', productIds);
+      productsMap = Object.fromEntries((products || []).map((p) => [p.id, p]));
+    }
+
+    res.json((data || []).map((a) => formatAuction(a, productsMap[a.product_id])));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -29,14 +89,19 @@ router.get('/:id', async (req, res) => {
       .select('*')
       .eq('id', req.params.id)
       .single();
+
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Auction not found' });
-      }
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Auction not found' });
       throw error;
     }
-    if (!data) return res.status(404).json({ error: 'Auction not found' });
-    res.json(data);
+
+    let product = null;
+    if (data.product_id) {
+      const { data: p } = await supabase.from('products').select('*').eq('id', data.product_id).single();
+      product = p;
+    }
+
+    res.json(formatAuction(data, product));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -48,10 +113,11 @@ router.get('/:id/bids', async (req, res) => {
     const { data, error } = await supabase
       .from('bids')
       .select('*')
-      .eq('auctionId', req.params.id)
-      .order('pricePerTon', { ascending: false });
+      .eq('auction_id', req.params.id)
+      .order('price_per_ton', { ascending: false });
+
     if (error) throw error;
-    res.json(data);
+    res.json(mapRowsToCamel(data));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -60,21 +126,20 @@ router.get('/:id/bids', async (req, res) => {
 // POST /api/auctions (admin)
 router.post('/', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const auction = {
-      id: `auc-${uuidv4().slice(0,8)}`,
-      ...req.body,
-      currentHighestBid: req.body.basePrice,
-      totalBids: 0,
-      status: 'upcoming',
-      createdAt: new Date().toISOString()
-    };
+    const { row, product } = await toDbAuction(req.body);
+
+    if (!row.product_id) {
+      return res.status(400).json({ error: 'productId is required to create an auction.' });
+    }
+
     const { data, error } = await supabase
       .from('auctions')
-      .insert([auction])
+      .insert([row])
       .select()
       .single();
+
     if (error) throw error;
-    res.status(201).json(data || auction);
+    res.status(201).json(formatAuction(data, product));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -83,20 +148,36 @@ router.post('/', verifyToken, requireAdmin, async (req, res) => {
 // PUT /api/auctions/:id (admin)
 router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
+    const updates = {};
+    if (req.body.status) updates.status = req.body.status;
+    if (req.body.basePrice || req.body.base_price) updates.base_price = Number(req.body.basePrice || req.body.base_price);
+    if (req.body.availableStock || req.body.available_stock) {
+      const stock = Number(req.body.availableStock || req.body.available_stock);
+      updates.available_stock = stock;
+      updates.total_stock = stock;
+    }
+    if (req.body.endTime) updates.end_time = req.body.endTime;
+    if (req.body.description) updates.description = req.body.description;
+
     const { data, error } = await supabase
       .from('auctions')
-      .update({ ...req.body, updatedAt: new Date().toISOString() })
+      .update(updates)
       .eq('id', req.params.id)
       .select()
       .single();
+
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Auction not found' });
-      }
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Auction not found' });
       throw error;
     }
-    if (!data) return res.status(404).json({ error: 'Auction not found' });
-    res.json(data);
+
+    let product = null;
+    if (data.product_id) {
+      const { data: p } = await supabase.from('products').select('*').eq('id', data.product_id).single();
+      product = p;
+    }
+
+    res.json(formatAuction(data, product));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -105,13 +186,12 @@ router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
 // DELETE /api/auctions/:id (admin)
 router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
-    // using count: 'exact' to check if a row was actually deleted
     const { error, count } = await supabase
       .from('auctions')
       .delete({ count: 'exact' })
       .eq('id', req.params.id);
+
     if (error) throw error;
-    // Note: depending on the supabase-js version count might be null if not requested, but we requested it
     if (count === 0) return res.status(404).json({ error: 'Auction not found' });
     res.json({ message: 'Auction deleted' });
   } catch (err) {

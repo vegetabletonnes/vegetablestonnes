@@ -1,5 +1,5 @@
--- Migration: Add Buyer Profiles, Farmer Profiles, and Admin Logs
--- Description: Extends the existing user architecture with specific profile tables and auditing.
+-- DEPRECATED: Merged into schema.sql
+-- Use schema.sql + seed.sql for fresh setup, or migration_existing_db.sql for live DB updates.
 
 -- ==========================================
 -- 1. Buyer Profiles Table

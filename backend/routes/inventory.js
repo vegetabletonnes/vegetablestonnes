@@ -1,28 +1,47 @@
 import { Router } from 'express';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import supabase from '../db/supabase.js';
+import { mapRowToCamel, mapRowsToCamel } from '../utils/transform.js';
 
 const router = Router();
 
-// GET /api/inventory — public list with filters
+const formatInventory = (row) => {
+  const item = mapRowToCamel(row);
+  return {
+    ...item,
+    basePricePerTon: Number(row?.base_price_per_ton || 0),
+    availableTons: Number(row?.available_tons || 0),
+    totalQuantityTons: Number(row?.total_quantity_tons || 0),
+    auctionStatus: row?.auction_status,
+    isDefault: row?.is_default,
+  };
+};
+
+const toDbInventory = (body) => ({
+  commodity: body.commodity,
+  variety: body.variety,
+  grade: body.grade,
+  description: body.description,
+  warehouse: body.warehouse,
+  origin: body.origin,
+  base_price_per_ton: Number(body.basePricePerTon || body.base_price_per_ton || 0),
+  available_tons: Number(body.availableTons || body.available_tons || 0),
+  total_quantity_tons: Number(body.totalQuantityTons || body.total_quantity_tons || body.availableTons || 0),
+  status: body.status || 'available',
+  auction_status: body.auctionStatus || body.auction_status || 'upcoming',
+  is_default: body.isDefault || false,
+});
+
+// GET /api/inventory
 router.get('/', async (req, res) => {
   try {
     const { commodity, grade, status, auctionStatus, search } = req.query;
-    
     let query = supabase.from('inventory').select('*');
 
-    if (commodity) {
-      query = query.ilike('commodity', `%${commodity}%`);
-    }
-    if (grade) {
-      query = query.eq('grade', grade);
-    }
-    if (status) {
-      query = query.eq('status', status);
-    }
-    if (auctionStatus) {
-      query = query.eq('auctionStatus', auctionStatus);
-    }
+    if (commodity) query = query.ilike('commodity', `%${commodity}%`);
+    if (grade) query = query.eq('grade', grade);
+    if (status) query = query.eq('status', status);
+    if (auctionStatus) query = query.eq('auction_status', auctionStatus);
     if (search) {
       const q = `%${search.replace(/,/g, '')}%`;
       query = query.or(`commodity.ilike.${q},variety.ilike.${q},warehouse.ilike.${q},origin.ilike.${q}`);
@@ -30,14 +49,14 @@ router.get('/', async (req, res) => {
 
     const { data: items, error } = await query;
     if (error) throw error;
-    
-    res.json(items || []);
+
+    res.json((items || []).map(formatInventory));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/inventory/:id — single item
+// GET /api/inventory/:id
 router.get('/:id', async (req, res) => {
   try {
     const { data: item, error } = await supabase
@@ -50,66 +69,56 @@ router.get('/:id', async (req, res) => {
       if (error.code === 'PGRST116') return res.status(404).json({ error: 'Not found' });
       throw error;
     }
-    
-    if (!item) return res.status(404).json({ error: 'Not found' });
-    
-    res.json(item);
+
+    res.json(formatInventory(item));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/inventory — admin create
+// POST /api/inventory (admin)
 router.post('/', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const newItem = {
+    const row = {
       id: 'INV' + String(Date.now()).slice(-6),
-      ...req.body,
-      status: req.body.status || 'available',
-      auctionStatus: req.body.auctionStatus || 'upcoming',
+      ...toDbInventory(req.body),
     };
-
-    if (!newItem.createdAt) {
-      newItem.createdAt = new Date().toISOString();
-    }
 
     const { data, error } = await supabase
       .from('inventory')
-      .insert([newItem])
+      .insert([row])
       .select()
       .single();
-      
+
     if (error) throw error;
-    res.status(201).json(data);
+    res.status(201).json(formatInventory(data));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// PUT /api/inventory/:id — admin update
+// PUT /api/inventory/:id (admin)
 router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('inventory')
-      .update(req.body)
+      .update(toDbInventory(req.body))
       .eq('id', req.params.id)
       .select()
       .single();
 
     if (error) {
-       if (error.code === 'PGRST116') return res.status(404).json({ error: 'Not found' });
-       throw error;
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Not found' });
+      throw error;
     }
-    
-    if (!data) return res.status(404).json({ error: 'Not found' });
-    
-    res.json(data);
+
+    res.json(formatInventory(data));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE /api/inventory/:id — admin delete
+// DELETE /api/inventory/:id (admin)
 router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { data: item, error } = await supabase
@@ -120,13 +129,11 @@ router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
       .single();
 
     if (error) {
-       if (error.code === 'PGRST116') return res.status(404).json({ error: 'Not found' });
-       throw error;
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Not found' });
+      throw error;
     }
-    
-    if (!item) return res.status(404).json({ error: 'Not found' });
 
-    res.json({ message: 'Deleted', item });
+    res.json({ message: 'Deleted', item: formatInventory(item) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
