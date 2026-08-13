@@ -1,34 +1,29 @@
 import { Router } from 'express';
-import { readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
+import supabase from '../db/supabase.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const router = Router();
 
-const invoicesPath = join(__dirname, '../data/invoices.json');
-const ordersPath   = join(__dirname, '../data/orders.json');
-
-const readInvoices = () => JSON.parse(readFileSync(invoicesPath, 'utf-8'));
-const writeInvoices = (d) => writeFileSync(invoicesPath, JSON.stringify(d, null, 2));
-const readOrders = () => JSON.parse(readFileSync(ordersPath, 'utf-8'));
-const writeOrders = (d) => writeFileSync(ordersPath, JSON.stringify(d, null, 2));
-
-const getOrdersList = (raw) => Array.isArray(raw) ? raw : (raw.orders || []);
-const getInvList = (raw) => Array.isArray(raw) ? raw : [];
-
 // POST /api/invoices/generate/:orderId — admin generates invoice
-router.post('/generate/:orderId', verifyToken, requireAdmin, (req, res) => {
+router.post('/generate/:orderId', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const ordersRaw = readOrders();
-    const ordersList = getOrdersList(ordersRaw);
-    const order = ordersList.find(o => o.id === req.params.orderId);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.orderId)
+      .single();
 
-    const invoices = readInvoices();
-    const existing = invoices.find(i => i.orderId === req.params.orderId);
+    if (orderError || !order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('orderId', req.params.orderId)
+      .single();
+
     if (existing) return res.json(existing);
 
     const subtotal = order.totalValue || 0;
@@ -36,9 +31,18 @@ router.post('/generate/:orderId', verifyToken, requireAdmin, (req, res) => {
     const gstAmount = Math.round(subtotal * gstRate);
     const total = subtotal + gstAmount;
 
+    // We'll need to know how many invoices exist to generate the number
+    const { count, error: countError } = await supabase
+      .from('invoices')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+       return res.status(500).json({ error: countError.message });
+    }
+
     const invoice = {
       id: 'INV-VT-' + Date.now(),
-      invoiceNumber: 'VT/' + new Date().getFullYear() + '/' + String(invoices.length + 1).padStart(4, '0'),
+      invoiceNumber: 'VT/' + new Date().getFullYear() + '/' + String((count || 0) + 1).padStart(4, '0'),
       orderId: order.id,
       buyerId: order.buyerId,
       buyerName: order.buyerName || order.buyerCompany || '',
@@ -59,15 +63,29 @@ router.post('/generate/:orderId', verifyToken, requireAdmin, (req, res) => {
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    invoices.push(invoice);
-    writeInvoices(invoices);
+    const { data: savedInvoice, error: insertError } = await supabase
+      .from('invoices')
+      .insert([invoice])
+      .select()
+      .single();
+
+    if (insertError) {
+      return res.status(500).json({ error: insertError.message });
+    }
 
     // Update order with invoiceId
-    const oIdx = ordersList.findIndex(o => o.id === req.params.orderId);
-    if (oIdx !== -1) {
-      ordersList[oIdx].invoiceId = invoice.id;
-      if (ordersList[oIdx].status === 'payment_successful') ordersList[oIdx].status = 'confirmed';
-      writeOrders(Array.isArray(ordersRaw) ? ordersList : { ...ordersRaw, orders: ordersList });
+    const orderUpdate = { invoiceId: invoice.id };
+    if (order.status === 'payment_successful') {
+        orderUpdate.status = 'confirmed';
+    }
+
+    const { error: updateOrderError } = await supabase
+      .from('orders')
+      .update(orderUpdate)
+      .eq('id', order.id);
+
+    if (updateOrderError) {
+        return res.status(500).json({ error: updateOrderError.message });
     }
 
     createNotification(
@@ -76,28 +94,37 @@ router.post('/generate/:orderId', verifyToken, requireAdmin, (req, res) => {
       { invoiceId: invoice.id, orderId: order.id }
     );
 
-    res.status(201).json(invoice);
+    res.status(201).json(savedInvoice || invoice);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // GET /api/invoices/mine — buyer
-router.get('/mine', verifyToken, (req, res) => {
+router.get('/mine', verifyToken, async (req, res) => {
   try {
-    const invoices = readInvoices();
-    res.json(invoices.filter(i => i.buyerId === req.user.id));
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('buyerId', req.user.id);
+      
+    if (error) throw error;
+    res.json(data || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // GET /api/invoices/:id
-router.get('/:id', verifyToken, (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const invoices = readInvoices();
-    const invoice = invoices.find(i => i.id === req.params.id);
-    if (!invoice) return res.status(404).json({ error: 'Not found' });
+    const { data: invoice, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !invoice) return res.status(404).json({ error: 'Not found' });
     if (req.user.role !== 'admin' && invoice.buyerId !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
     res.json(invoice);
   } catch (err) {
@@ -106,9 +133,14 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // GET /api/invoices — admin all
-router.get('/', verifyToken, requireAdmin, (req, res) => {
+router.get('/', verifyToken, requireAdmin, async (req, res) => {
   try {
-    res.json(readInvoices());
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*');
+      
+    if (error) throw error;
+    res.json(data || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

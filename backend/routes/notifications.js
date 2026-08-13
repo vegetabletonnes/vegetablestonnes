@@ -1,78 +1,96 @@
 import { Router } from 'express';
-import { readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { verifyToken } from '../middleware/auth.js';
+import supabase from '../db/supabase.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const router = Router();
 
-const notifsPath = join(__dirname, '../data/notifications.json');
-
-const readNotifs = () => JSON.parse(readFileSync(notifsPath, 'utf-8'));
-const writeNotifs = (data) => writeFileSync(notifsPath, JSON.stringify(data, null, 2));
-
 // Internal helper — called by other routes
-export const createNotification = (userId, type, title, message, metadata = {}) => {
+export const createNotification = async (userId, type, title, message, metadata = {}) => {
   try {
-    const notifs = readNotifs();
-    const notif = {
-      id: 'NOTIF' + Date.now() + Math.floor(Math.random() * 1000),
-      userId,
-      type,
-      title,
-      message,
-      metadata,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-    notifs.unshift(notif);
-    writeNotifs(notifs);
-    return notif;
-  } catch { return null; }
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        userId,
+        type,
+        title,
+        message,
+        metadata,
+        read: false
+      }])
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('Error creating notification:', err);
+    return null;
+  }
 };
 
 // GET /api/notifications/mine
-router.get('/mine', verifyToken, (req, res) => {
+router.get('/mine', verifyToken, async (req, res) => {
   try {
-    const notifs = readNotifs();
-    res.json(notifs.filter(n => n.userId === req.user.id));
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('userId', req.user.id)
+      .order('createdAt', { ascending: false });
+      
+    if (error) throw error;
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // GET /api/notifications/unread-count
-router.get('/unread-count', verifyToken, (req, res) => {
+router.get('/unread-count', verifyToken, async (req, res) => {
   try {
-    const notifs = readNotifs();
-    const count = notifs.filter(n => n.userId === req.user.id && !n.read).length;
-    res.json({ count });
+    const { error, count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('userId', req.user.id)
+      .eq('read', false);
+      
+    if (error) throw error;
+    res.json({ count: count || 0 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // POST /api/notifications/mark-read/:id
-router.post('/mark-read/:id', verifyToken, (req, res) => {
+router.post('/mark-read/:id', verifyToken, async (req, res) => {
   try {
-    const notifs = readNotifs();
-    const idx = notifs.findIndex(n => n.id === req.params.id && n.userId === req.user.id);
-    if (idx === -1) return res.status(404).json({ error: 'Not found' });
-    notifs[idx].read = true;
-    writeNotifs(notifs);
-    res.json(notifs[idx]);
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', req.params.id)
+      .eq('userId', req.user.id)
+      .select()
+      .single();
+      
+    if (error) {
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Not found' });
+      throw error;
+    }
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // POST /api/notifications/mark-all-read
-router.post('/mark-all-read', verifyToken, (req, res) => {
+router.post('/mark-all-read', verifyToken, async (req, res) => {
   try {
-    const notifs = readNotifs();
-    notifs.forEach(n => { if (n.userId === req.user.id) n.read = true; });
-    writeNotifs(notifs);
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('userId', req.user.id)
+      .eq('read', false);
+      
+    if (error) throw error;
     res.json({ message: 'All marked as read' });
   } catch (err) {
     res.status(500).json({ error: err.message });

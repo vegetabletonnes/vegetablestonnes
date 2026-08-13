@@ -1,25 +1,27 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
+import supabase from '../db/supabase.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const router = express.Router();
-
-const productsDb = new Low(new JSONFile(join(__dirname, '../data/products.json')), { products: [] });
 
 // GET /api/products
 router.get('/', async (req, res) => {
   try {
-    await productsDb.read();
     const { category, active } = req.query;
-    let products = productsDb.data.products;
-    if (category) products = products.filter(p => p.category === category);
-    if (active !== undefined) products = products.filter(p => p.active === (active === 'true'));
-    res.json(products);
+    let query = supabase.from('products').select('*');
+    
+    if (category) {
+      query = query.eq('category', category);
+    }
+    if (active !== undefined) {
+      query = query.eq('active', active === 'true');
+    }
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -28,10 +30,15 @@ router.get('/', async (req, res) => {
 // GET /api/products/:id
 router.get('/:id', async (req, res) => {
   try {
-    await productsDb.read();
-    const product = productsDb.data.products.find(p => p.id === req.params.id);
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(product);
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', req.params.id);
+      
+    if (error) throw error;
+    if (!data || data.length === 0) return res.status(404).json({ error: 'Product not found' });
+    
+    res.json(data[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -40,11 +47,21 @@ router.get('/:id', async (req, res) => {
 // POST /api/products (admin)
 router.post('/', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await productsDb.read();
-    const product = { id: `prod-${uuidv4().slice(0,8)}`, ...req.body, active: true, createdAt: new Date().toISOString() };
-    productsDb.data.products.push(product);
-    await productsDb.write();
-    res.status(201).json(product);
+    const product = { 
+      id: `prod-${uuidv4().slice(0, 8)}`, 
+      ...req.body, 
+      active: true, 
+      createdAt: new Date().toISOString() 
+    };
+    
+    const { data, error } = await supabase
+      .from('products')
+      .insert([product])
+      .select();
+      
+    if (error) throw error;
+    
+    res.status(201).json(data[0] || product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -53,12 +70,21 @@ router.post('/', verifyToken, requireAdmin, async (req, res) => {
 // PUT /api/products/:id (admin)
 router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await productsDb.read();
-    const idx = productsDb.data.products.findIndex(p => p.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Product not found' });
-    productsDb.data.products[idx] = { ...productsDb.data.products[idx], ...req.body, updatedAt: new Date().toISOString() };
-    await productsDb.write();
-    res.json(productsDb.data.products[idx]);
+    const updateData = {
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    };
+    
+    const { data, error } = await supabase
+      .from('products')
+      .update(updateData)
+      .eq('id', req.params.id)
+      .select();
+      
+    if (error) throw error;
+    if (!data || data.length === 0) return res.status(404).json({ error: 'Product not found' });
+    
+    res.json(data[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -67,11 +93,15 @@ router.put('/:id', verifyToken, requireAdmin, async (req, res) => {
 // DELETE /api/products/:id (admin)
 router.delete('/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await productsDb.read();
-    const idx = productsDb.data.products.findIndex(p => p.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Product not found' });
-    productsDb.data.products.splice(idx, 1);
-    await productsDb.write();
+    const { data, error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', req.params.id)
+      .select();
+      
+    if (error) throw error;
+    if (!data || data.length === 0) return res.status(404).json({ error: 'Product not found' });
+    
     res.json({ message: 'Product deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

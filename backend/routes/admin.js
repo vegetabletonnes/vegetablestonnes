@@ -1,29 +1,51 @@
 import express from 'express';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import supabase from '../db/supabase.js';
 import { verifyToken, requireAdmin } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const router = express.Router();
 
-const usersDb = new Low(new JSONFile(join(__dirname, '../data/users.json')), { users: [] });
-const productsDb = new Low(new JSONFile(join(__dirname, '../data/products.json')), { products: [] });
-const auctionsDb = new Low(new JSONFile(join(__dirname, '../data/auctions.json')), { auctions: [] });
-const bidsDb = new Low(new JSONFile(join(__dirname, '../data/bids.json')), { bids: [] });
-const ordersDb = new Low(new JSONFile(join(__dirname, '../data/orders.json')), { orders: [] });
+const logAdminAction = async (adminId, action, entityId, entityType, details = {}) => {
+  try {
+    await supabase.from('admin_logs').insert([{
+      adminId,
+      action,
+      entityId,
+      entityType,
+      details,
+      createdAt: new Date().toISOString()
+    }]);
+  } catch (err) {
+    console.error('Error logging admin action:', err);
+  }
+};
 
-const ensureOrderForApprovedBid = async (bid) => {
-  await ordersDb.read();
-  const existingOrder = ordersDb.data.orders.find((o) => o.bidId === bid.id);
+const ensureOrderForApprovedBid = async (bidId) => {
+  const { data: bid, error: bidError } = await supabase
+    .from('bids')
+    .select('*')
+    .eq('id', bidId)
+    .single();
+
+  if (bidError || !bid) throw new Error('Bid not found');
+
+  const { data: existingOrder } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('bidId', bidId)
+    .single();
+
   if (existingOrder) return existingOrder;
 
-  await auctionsDb.read();
-  const auction = auctionsDb.data.auctions.find((a) => a.id === bid.auctionId);
+  const { data: auction } = await supabase
+    .from('auctions')
+    .select('*')
+    .eq('id', bid.auctionId)
+    .single();
+
+  const newOrderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
   const order = {
-    id: `ORD-${Math.floor(10000 + Math.random() * 90000)}`,
+    id: newOrderId,
     bidId: bid.id,
     auctionId: bid.auctionId,
     buyerId: bid.buyerId,
@@ -49,31 +71,52 @@ const ensureOrderForApprovedBid = async (bid) => {
     updatedAt: new Date().toISOString()
   };
 
-  ordersDb.data.orders.push(order);
-  await ordersDb.write();
-  return order;
+  const { data: insertedOrder, error: insertError } = await supabase
+    .from('orders')
+    .insert([order])
+    .select()
+    .single();
+
+  if (insertError) throw insertError;
+  return insertedOrder || order;
 };
 
 router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await usersDb.read();
-    await productsDb.read();
-    await auctionsDb.read();
-    await bidsDb.read();
-    await ordersDb.read();
+    const [
+      { count: totalUsers },
+      { count: totalBuyers },
+      { count: totalFarmers },
+      { count: totalProducts },
+      { count: activeAuctions },
+      { count: totalAuctions },
+      { count: totalBids },
+      { count: pendingBids },
+      { data: orders }
+    ] = await Promise.all([
+      supabase.from('users').select('*', { count: 'exact', head: true }),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'buyer'),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'farmer'),
+      supabase.from('products').select('*', { count: 'exact', head: true }),
+      supabase.from('auctions').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('auctions').select('*', { count: 'exact', head: true }),
+      supabase.from('bids').select('*', { count: 'exact', head: true }),
+      supabase.from('bids').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('orders').select('totalValue, quantity')
+    ]);
 
     const stats = {
-      totalUsers: usersDb.data.users.length,
-      totalBuyers: usersDb.data.users.filter((u) => u.role === 'buyer').length,
-      totalFarmers: usersDb.data.users.filter((u) => u.role === 'farmer').length,
-      totalProducts: productsDb.data.products.length,
-      activeAuctions: auctionsDb.data.auctions.filter((a) => a.status === 'active').length,
-      totalAuctions: auctionsDb.data.auctions.length,
-      totalBids: bidsDb.data.bids.length,
-      pendingBids: bidsDb.data.bids.filter((b) => b.status === 'pending').length,
-      totalOrders: ordersDb.data.orders.length,
-      totalRevenue: ordersDb.data.orders.reduce((sum, o) => sum + (o.totalValue || 0), 0),
-      totalTonsTraded: ordersDb.data.orders.reduce((sum, o) => sum + (o.quantity || 0), 0)
+      totalUsers: totalUsers || 0,
+      totalBuyers: totalBuyers || 0,
+      totalFarmers: totalFarmers || 0,
+      totalProducts: totalProducts || 0,
+      activeAuctions: activeAuctions || 0,
+      totalAuctions: totalAuctions || 0,
+      totalBids: totalBids || 0,
+      pendingBids: pendingBids || 0,
+      totalOrders: orders?.length || 0,
+      totalRevenue: orders?.reduce((sum, o) => sum + (Number(o.totalValue) || 0), 0) || 0,
+      totalTonsTraded: orders?.reduce((sum, o) => sum + (Number(o.quantity) || 0), 0) || 0
     };
 
     res.json(stats);
@@ -84,9 +127,12 @@ router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
 
 router.get('/users', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await usersDb.read();
-    const users = usersDb.data.users.map(({ password, ...user }) => user);
-    res.json(users);
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, email, role, companyName, gstin, phone, address, verified, createdAt, updatedAt');
+    
+    if (error) throw error;
+    res.json(users || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -94,13 +140,20 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
 
 router.put('/users/:id/verify', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await usersDb.read();
-    const userIndex = usersDb.data.users.findIndex((u) => u.id === req.params.id);
-    if (userIndex === -1) return res.status(404).json({ error: 'User not found' });
+    const isVerified = typeof req.body?.verified === 'boolean' ? req.body.verified : true;
 
-    usersDb.data.users[userIndex].verified = typeof req.body?.verified === 'boolean' ? req.body.verified : true;
-    await usersDb.write();
-    res.json({ message: 'User verification updated.', user: usersDb.data.users[userIndex] });
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({ verified: isVerified, updatedAt: new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select('id, name, email, role, companyName, gstin, phone, address, verified, createdAt, updatedAt')
+      .single();
+
+    if (error) throw error;
+
+    await logAdminAction(req.user?.id || 'admin', 'verify_user', req.params.id, 'user', { verified: isVerified });
+
+    res.json({ message: 'User verification updated.', user });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -108,8 +161,9 @@ router.put('/users/:id/verify', verifyToken, requireAdmin, async (req, res) => {
 
 router.get('/bids', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await bidsDb.read();
-    res.json(bidsDb.data.bids);
+    const { data: bids, error } = await supabase.from('bids').select('*');
+    if (error) throw error;
+    res.json(bids || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -117,22 +171,20 @@ router.get('/bids', verifyToken, requireAdmin, async (req, res) => {
 
 router.put('/bids/:id', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await bidsDb.read();
-    const bidIndex = bidsDb.data.bids.findIndex((b) => b.id === req.params.id);
-    if (bidIndex === -1) return res.status(404).json({ error: 'Bid not found' });
+    const updateData = { ...req.body, updatedAt: new Date().toISOString() };
+    const { data: bid, error: bidError } = await supabase
+      .from('bids')
+      .update(updateData)
+      .eq('id', req.params.id)
+      .select()
+      .single();
 
-    bidsDb.data.bids[bidIndex] = {
-      ...bidsDb.data.bids[bidIndex],
-      ...req.body,
-      updatedAt: new Date().toISOString()
-    };
-    await bidsDb.write();
+    if (bidError) throw bidError;
 
-    const bid = bidsDb.data.bids[bidIndex];
     let order = null;
 
     if (['approved', 'accepted'].includes(bid.status)) {
-      order = await ensureOrderForApprovedBid(bid);
+      order = await ensureOrderForApprovedBid(bid.id);
       createNotification(
         bid.buyerId,
         'bid_accepted',
@@ -166,6 +218,8 @@ router.put('/bids/:id', verifyToken, requireAdmin, async (req, res) => {
       );
     }
 
+    await logAdminAction(req.user?.id || 'admin', 'update_bid_status', bid.id, 'bid', { status: bid.status });
+
     res.json({ ...bid, orderId: order?.id || null });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -174,8 +228,9 @@ router.put('/bids/:id', verifyToken, requireAdmin, async (req, res) => {
 
 router.get('/orders', verifyToken, requireAdmin, async (req, res) => {
   try {
-    await ordersDb.read();
-    res.json(ordersDb.data.orders);
+    const { data: orders, error } = await supabase.from('orders').select('*');
+    if (error) throw error;
+    res.json(orders || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
