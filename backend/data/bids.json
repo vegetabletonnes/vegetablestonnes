@@ -1,0 +1,28 @@
+{
+  "bids": [
+    {
+      "id": "bid-001",
+      "auctionId": "auc-001",
+      "buyerId": "buyer-001",
+      "buyerName": "Ramesh Mehta",
+      "buyerCompany": "Apex Agri Foods Pvt Ltd",
+      "quantity": 20,
+      "pricePerTon": 19200,
+      "totalValue": 384000,
+      "status": "pending",
+      "createdAt": "2026-08-05T08:30:00.000Z"
+    },
+    {
+      "id": "bid-002",
+      "auctionId": "auc-002",
+      "buyerId": "buyer-001",
+      "buyerName": "Ramesh Mehta",
+      "buyerCompany": "Apex Agri Foods Pvt Ltd",
+      "quantity": 50,
+      "pricePerTon": 15800,
+      "totalValue": 790000,
+      "status": "approved",
+      "createdAt": "2026-08-05T09:00:00.000Z"
+    }
+  ]
+}
