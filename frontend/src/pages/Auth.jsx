@@ -109,15 +109,7 @@ const Auth = () => {
                   <input type="password" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})}
                     placeholder="Enter password" required />
                 </div>
-                <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '0.85rem', marginBottom: '1.25rem', fontSize: '0.82rem' }}>
-                  <strong style={{ color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <FaCrown style={{ color: '#fbbf24' }} /> Demo Accounts:
-                  </strong>
-                  <div style={{ color: '#6b7280', marginTop: '4px', lineHeight: 1.8 }}>
-                    • Company Head (Admin): admin@vegetabletonnes.com / password<br/>
-                    • Bulk Buyer: buyer@demo.com / password
-                  </div>
-                </div>
+
                 <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   {loading ? <><FaSpinner className="animate-spin" /> Signing in...</> : <><FaLock /> Sign In</>}
                 </button>

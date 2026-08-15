@@ -49,16 +49,14 @@ const AdminLogin = () => {
             <div className="form-group">
               <label>Admin Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="admin@vegetabletonnes.com" required />
+                placeholder="vegetabletonnes@gmail.com" required />
             </div>
             <div className="form-group">
               <label>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="Admin password" required />
             </div>
-            <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '0.75rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: '#047857', fontWeight: 600 }}>
-              Demo: admin@vegetabletonnes.com / password
-            </div>
+
             <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">
               {loading ? '⏳ Signing in...' : '👑 Access Admin Panel'}
             </button>

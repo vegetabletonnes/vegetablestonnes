@@ -42,4 +42,4 @@ export const sendEmail = async ({ to, subject, html, text }) => {
 };
 
 export const getAdminEmail = () =>
-  process.env.ADMIN_EMAIL || 'admin@vegetabletonnes.com';
+  process.env.ADMIN_EMAIL || 'vegetabletonnes@gmail.com';

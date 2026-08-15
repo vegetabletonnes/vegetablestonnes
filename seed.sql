@@ -5,8 +5,8 @@
 INSERT INTO users (id, email, password_hash, role, name, company, phone, verified, registration_status)
 VALUES (
     '11111111-1111-4111-a111-111111111111',
-    'admin@vegetabletonnes.com',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'vegetabletonnes@gmail.com',
+    '$2a$10$C0MzcT3TXqYDYniaOWlTOO1.f8/nTdbkdrZe7a8OfZ3YbTTuTW/ry',
     'admin',
     'Admin User',
     'VegetableTonnes Platform',
