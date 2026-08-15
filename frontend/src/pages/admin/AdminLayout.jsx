@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -49,20 +49,36 @@ const AdminLayout = ({ children }) => {
         zIndex: 100,
       }}>
         {/* Logo */}
-        <div style={{ padding: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: '10px', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-          <span style={{ color: '#22c55e', fontSize: '1.3rem', display: 'flex' }}><FaSeedling /></span>
-          {!collapsed && (
-            <div>
-              <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
-                VT <span style={{ color: '#22c55e' }}>Admin</span>
+        <div style={{ padding: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }} title="Go to Home Page">
+            <img
+              src="/logo-vt.png"
+              alt="VegetableTonnes"
+              style={{
+                height: 40,
+                width: 40,
+                objectFit: 'contain',
+                borderRadius: '8px',
+                filter: 'drop-shadow(0 0 6px rgba(20,184,166,0.3))',
+              }}
+            />
+            {!collapsed && (
+              <div>
+                <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 1000, fontSize: '1.1rem', color: '#0F172A' }}>
+                  VT <span style={{ color: '#14B8A6' }}>Admin</span>
+                </div>
+                <div style={{ fontSize: '0.65rem', color: '#6b7280', fontWeight: 700, marginTop: '1px', fontFamily: 'Montserrat, sans-serif', letterSpacing: '0.5px' }}>
+                  COMPANY PORTAL
+                </div>
               </div>
-              <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>Company Portal</div>
-            </div>
+            )}
+          </Link>
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.9rem', padding: '4px' }}
+            ><FaAngleLeft /></button>
           )}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.9rem', display: collapsed ? 'none' : 'block' }}
-          ><FaAngleLeft /></button>
         </div>
 
         {/* Nav Links */}
