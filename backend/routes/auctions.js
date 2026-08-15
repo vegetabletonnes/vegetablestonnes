@@ -126,10 +126,28 @@ router.get('/:id/bids', async (req, res) => {
 // POST /api/auctions (admin)
 router.post('/', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const { row, product } = await toDbAuction(req.body);
+    let { row, product } = await toDbAuction(req.body);
 
     if (!row.product_id) {
-      return res.status(400).json({ error: 'productId is required to create an auction.' });
+      // Auto-create a product for this custom auction
+      const { data: newProduct, error: prodErr } = await supabase
+        .from('products')
+        .insert([{
+          farmer_id: row.farmer_id || '22222222-2222-4222-a222-222222222222',
+          name: req.body.productName || 'Custom Auction Product',
+          category: 'Other',
+          grade: req.body.qualityGrade || 'A',
+          base_price: row.base_price,
+          available_stock: row.total_stock,
+          image: req.body.image,
+          active: true
+        }])
+        .select()
+        .single();
+
+      if (prodErr) throw prodErr;
+      row.product_id = newProduct.id;
+      product = newProduct;
     }
 
     const { data, error } = await supabase

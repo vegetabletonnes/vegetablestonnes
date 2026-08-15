@@ -117,8 +117,8 @@ CREATE TABLE bids (
 -- ─── 6. Orders ──────────────────────────────────────────────
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    bid_id UUID NOT NULL REFERENCES bids(id),
-    auction_id UUID NOT NULL REFERENCES auctions(id),
+    bid_id UUID NOT NULL REFERENCES bids(id) ON DELETE CASCADE,
+    auction_id UUID NOT NULL REFERENCES auctions(id) ON DELETE CASCADE,
     buyer_id UUID NOT NULL REFERENCES users(id),
     farmer_id UUID NOT NULL REFERENCES users(id),
     quantity NUMERIC NOT NULL,
