@@ -51,7 +51,7 @@ const Home = () => {
     <div className="page-section">
 
       {/* Hero Section */}
-      <section style={{ position: 'relative', overflow: 'hidden', padding: '5rem 0 4rem' }}>
+      <section style={{ position: 'relative', overflow: 'hidden', padding: '2rem 0 4rem' }}>
         {/* Green orb BG */}
         <div style={{
           position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)',
