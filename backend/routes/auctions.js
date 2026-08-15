@@ -129,11 +129,16 @@ router.post('/', verifyToken, requireAdmin, async (req, res) => {
     let { row, product } = await toDbAuction(req.body, req.user.id);
 
     if (!row.product_id) {
+      // Find a valid admin or farmer in the DB to associate this dummy product with
+      const { data: validUser } = await supabase.from('users').select('id').limit(1).single();
+      const insertFarmerId = validUser ? validUser.id : '11111111-1111-4111-a111-111111111111';
+      row.farmer_id = insertFarmerId;
+
       // Auto-create a product for this custom auction
       const { data: newProduct, error: prodErr } = await supabase
         .from('products')
         .insert([{
-          farmer_id: row.farmer_id,
+          farmer_id: insertFarmerId,
           name: req.body.productName || 'Custom Auction Product',
           category: 'Other',
           grade: req.body.qualityGrade || 'A',
