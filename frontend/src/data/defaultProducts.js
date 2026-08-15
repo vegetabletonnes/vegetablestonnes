@@ -14,6 +14,7 @@ export const DEFAULT_PRODUCTS = [
     totalQuantityTons: 150,
     auctionStatus: 'active',
     isDefault: true,
+    imageUrl: '/tomatoes.jpg',
   },
   {
     id: 'default-watermelons',
@@ -29,6 +30,7 @@ export const DEFAULT_PRODUCTS = [
     totalQuantityTons: 250,
     auctionStatus: 'active',
     isDefault: true,
+    imageUrl: '/Watermelons.jpeg',
   },
   {
     id: 'default-muskmelons',
@@ -44,6 +46,7 @@ export const DEFAULT_PRODUCTS = [
     totalQuantityTons: 110,
     auctionStatus: 'upcoming',
     isDefault: true,
+    imageUrl: '/Muskmelons.jpg',
   },
   {
     id: 'default-mangoes',
@@ -59,6 +62,7 @@ export const DEFAULT_PRODUCTS = [
     totalQuantityTons: 80,
     auctionStatus: 'active',
     isDefault: true,
+    imageUrl: '/Mangoes.jpg',
   },
   {
     id: 'default-groundnuts',
@@ -74,5 +78,6 @@ export const DEFAULT_PRODUCTS = [
     totalQuantityTons: 400,
     auctionStatus: 'active',
     isDefault: true,
+    imageUrl: '/Groundnuts.jpg',
   },
 ];

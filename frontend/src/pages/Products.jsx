@@ -36,27 +36,36 @@ const ProductCard = ({ item }) => {
       {/* Image / Icon Header */}
       <div style={{
         height: 160,
-        background: `linear-gradient(135deg, ${gradeColor}18 0%, rgba(20,184,166,0.06) 100%)`,
+        background: item.imageUrl ? `url(${item.imageUrl}) center/cover no-repeat` : `linear-gradient(135deg, ${gradeColor}18 0%, rgba(20,184,166,0.06) 100%)`,
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         position: 'relative', gap: '0.5rem',
       }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: '18px',
-          background: `${gradeColor}20`, border: `2px solid ${gradeColor}35`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.8rem',
-        }}>
-          <FaLeaf style={{ color: gradeColor }} />
-        </div>
-        <div style={{ position: 'absolute', top: 12, right: 12 }}>
+        {item.imageUrl && (
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 50%, transparent 100%)' }} />
+        )}
+        
+        {!item.imageUrl && (
+          <div style={{
+            width: 64, height: 64, borderRadius: '18px',
+            background: `${gradeColor}20`, border: `2px solid ${gradeColor}35`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.8rem',
+          }}>
+            <FaLeaf style={{ color: gradeColor }} />
+          </div>
+        )}
+        <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
           {auctionStatusBadge[item.auctionStatus] || null}
         </div>
-        <div style={{ position: 'absolute', top: 12, left: 12 }}>
+        <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
           <span style={{
-            background: `${gradeColor}20`, border: `1px solid ${gradeColor}35`,
-            color: gradeColor, padding: '2px 9px', borderRadius: 999,
+            background: item.imageUrl ? 'rgba(0,0,0,0.6)' : `${gradeColor}20`, 
+            border: `1px solid ${item.imageUrl ? 'rgba(255,255,255,0.2)' : `${gradeColor}35`}`,
+            color: item.imageUrl ? '#fff' : gradeColor, 
+            padding: '2px 9px', borderRadius: 999,
             fontSize: '0.68rem', fontWeight: 700, fontFamily: 'Inter, sans-serif',
+            backdropFilter: item.imageUrl ? 'blur(4px)' : 'none'
           }}>Grade {item.grade}</span>
         </div>
       </div>
