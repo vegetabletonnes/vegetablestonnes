@@ -22,7 +22,7 @@ const formatAuction = (row, product) => {
   };
 };
 
-const toDbAuction = async (body) => {
+const toDbAuction = async (body, userId) => {
   let productId = body.productId || body.product_id;
   let farmerId = body.farmerId || body.farmer_id;
   let product = null;
@@ -43,7 +43,7 @@ const toDbAuction = async (body) => {
   return {
     row: {
       product_id: productId || product?.id,
-      farmer_id: farmerId || DEFAULT_FARMER_ID,
+      farmer_id: farmerId || userId || DEFAULT_FARMER_ID,
       base_price: basePrice,
       current_highest_bid: basePrice,
       total_stock: stock,
@@ -126,14 +126,14 @@ router.get('/:id/bids', async (req, res) => {
 // POST /api/auctions (admin)
 router.post('/', verifyToken, requireAdmin, async (req, res) => {
   try {
-    let { row, product } = await toDbAuction(req.body);
+    let { row, product } = await toDbAuction(req.body, req.user.id);
 
     if (!row.product_id) {
       // Auto-create a product for this custom auction
       const { data: newProduct, error: prodErr } = await supabase
         .from('products')
         .insert([{
-          farmer_id: row.farmer_id || '22222222-2222-4222-a222-222222222222',
+          farmer_id: row.farmer_id,
           name: req.body.productName || 'Custom Auction Product',
           category: 'Other',
           grade: req.body.qualityGrade || 'A',
