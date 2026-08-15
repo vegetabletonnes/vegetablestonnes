@@ -38,7 +38,7 @@ export const DEFAULT_PRODUCTS = [
     variety: 'Golden Aroma',
     grade: 'A',
     description:
-      'Sweet Aroma. Rich Taste. Naturally Fresh. Handpicked muskmelons offering exceptional flavor, freshness, and quality.',
+      'Sweet Aroma. Rich Taste. Naturally Fresh. Handpicked muskmelons offering exceptional flavor, freshness, & quality.',
     warehouse: 'Nashik Agri Warehouse',
     origin: 'Nashik, Maharashtra',
     basePricePerTon: 14000,
