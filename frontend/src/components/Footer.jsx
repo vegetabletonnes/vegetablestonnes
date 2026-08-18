@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaSeedling, FaCheck } from 'react-icons/fa6';
+import { FaSeedling, FaCheck, FaEnvelope, FaPhone, FaLocationDot } from 'react-icons/fa6';
 
 const Footer = () => (
   <footer style={{
@@ -52,15 +52,15 @@ const Footer = () => (
           <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#a7f3d0', marginBottom: '1rem', fontWeight: 700 }}>Contact Us</h4>
           <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
-              <span style={{ color: '#6ee7b7' }}>📧</span>
+              <span style={{ color: '#6ee7b7' }}><FaEnvelope /></span>
               <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>contact@vegetabletonnes.com</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
-              <span style={{ color: '#6ee7b7' }}>📞</span>
+              <span style={{ color: '#6ee7b7' }}><FaPhone /></span>
               <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>99725 09325</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-              <span style={{ color: '#6ee7b7', marginTop: '2px' }}>📍</span>
+              <span style={{ color: '#6ee7b7', marginTop: '2px' }}><FaLocationDot /></span>
               <span style={{ color: '#e2e8f0', fontSize: '0.85rem', lineHeight: '1.4' }}>
                 27-136-7-2 First Floor, GokulCircle,<br/>
                 Chowdepalle Road, Punganur,<br/>
