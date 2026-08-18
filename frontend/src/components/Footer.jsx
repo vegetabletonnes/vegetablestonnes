@@ -108,11 +108,15 @@ const Footer = () => (
           >Viztechsolutions</a>.
         </p>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          {['Privacy Policy', 'Terms of Service', 'Contact'].map(t => (
-            <span key={t} style={{ fontSize: '0.82rem', color: '#cbd5e1', cursor: 'pointer', transition: 'color 0.2s' }}
+          {[
+            { label: 'Privacy Policy', path: '/privacy-policy' },
+            { label: 'Terms of Service', path: '/terms-of-service' },
+            { label: 'Contact', path: '/about' }
+          ].map(t => (
+            <Link key={t.label} to={t.path} style={{ fontSize: '0.82rem', color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}
               onMouseOver={e => e.target.style.color = '#ffffff'}
               onMouseOut={e => e.target.style.color = '#cbd5e1'}
-            >{t}</span>
+            >{t.label}</Link>
           ))}
         </div>
       </div>

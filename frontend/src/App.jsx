@@ -19,6 +19,8 @@ import Invoices, { InvoiceViewer } from './pages/Invoices';
 import Notifications from './pages/Notifications';
 import HowItWorks from './pages/HowItWorks';
 import About from './pages/About';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import News from './pages/News';
@@ -90,6 +92,8 @@ function AppRoutes() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/about" element={<About />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/news" element={<News />} />
           <Route
