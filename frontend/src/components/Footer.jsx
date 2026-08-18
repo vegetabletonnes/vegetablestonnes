@@ -47,15 +47,27 @@ const Footer = () => (
           ))}
         </div>
 
-        {/* Compliance */}
+        {/* Contact Us */}
         <div>
-          <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#a7f3d0', marginBottom: '1rem', fontWeight: 700 }}>Compliance</h4>
-          {['GST Verified Buyers', 'PAN Authentication', 'FSSAI Grade Standards', 'Weighbridge Certified'].map(t => (
-            <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.5rem' }}>
-              <span style={{ color: '#6ee7b7', fontSize: '0.75rem' }}><FaCheck /></span>
-              <span style={{ color: '#e2e8f0', fontSize: '0.87rem' }}>{t}</span>
+          <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#a7f3d0', marginBottom: '1rem', fontWeight: 700 }}>Contact Us</h4>
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+              <span style={{ color: '#6ee7b7' }}>📧</span>
+              <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>contact@vegetabletonnes.com</span>
             </div>
-          ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+              <span style={{ color: '#6ee7b7' }}>📞</span>
+              <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>99725 09325</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <span style={{ color: '#6ee7b7', marginTop: '2px' }}>📍</span>
+              <span style={{ color: '#e2e8f0', fontSize: '0.85rem', lineHeight: '1.4' }}>
+                27-136-7-2 First Floor, GokulCircle,<br/>
+                Chowdepalle Road, Punganur,<br/>
+                Chittoor Dist., Andhra Pradesh - 517247, India
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Stats */}

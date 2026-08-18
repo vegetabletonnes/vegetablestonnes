@@ -13,6 +13,7 @@ const formatAuction = (row, product) => {
     productName: product?.name || a.productName,
     farmerName: product?.farmer_name,
     location: product?.origin,
+    productImage: product?.image,
     image: product?.image,
     qualityGrade: product?.grade,
     endTime: a.endTime,

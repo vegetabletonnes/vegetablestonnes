@@ -241,7 +241,9 @@ const Products = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: i * 0.06 }}
                 >
-                  <ProductCard item={item} />
+                  <Link to="/auctions" style={{ textDecoration: 'none' }}>
+                    <ProductCard item={item} />
+                  </Link>
                 </motion.div>
               ))}
             </div>

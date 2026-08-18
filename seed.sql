@@ -1,12 +1,12 @@
 -- VegetableTonnes seed data
 -- Run AFTER schema.sql in Supabase SQL Editor
 
--- ─── Admin (password: password) ─────────────────────────────
+-- ─── Admin (password: Vegetabletonnes@1234) ─────────────────────────────
 INSERT INTO users (id, email, password_hash, role, name, company, phone, verified, registration_status)
 VALUES (
     '11111111-1111-4111-a111-111111111111',
     'vegetabletonnes@gmail.com',
-    '$2a$10$C0MzcT3TXqYDYniaOWlTOO1.f8/nTdbkdrZe7a8OfZ3YbTTuTW/ry',
+    '$2a$10$Hy4Gd6SwYXaFWLf13ejfZuD4iLJavhTtAoJX2ZL2vPv/MFurqTrP6',
     'admin',
     'Admin User',
     'VegetableTonnes Platform',

@@ -102,7 +102,7 @@ const Auctions = () => {
                   </span>
                 </div>
                 <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)', borderRadius: '8px', padding: '4px 10px' }}>
-                  <span style={{ fontSize: '0.78rem', color: '#6ee7b7', fontWeight: 700 }}>{auc.availableStock} Tons Left</span>
+                  <span style={{ fontSize: '0.78rem', color: '#6ee7b7', fontWeight: 700 }}>Qty: {auc.availableStock} Tons</span>
                 </div>
               </div>
 
@@ -114,7 +114,7 @@ const Auctions = () => {
 
                 <div style={{ background: 'rgba(20,184,166,0.08)', borderRadius: '10px', padding: '10px 12px', marginBottom: '1rem', border: '1px solid rgba(20,184,166,0.15)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.78rem', color: '#64748B' }}>Base Price</span>
+                    <span style={{ fontSize: '0.78rem', color: '#64748B' }}>Starting Price</span>
                     <span style={{ fontSize: '0.78rem', color: '#64748B' }}>Min Order</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -125,7 +125,7 @@ const Auctions = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <div>
-                    <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '2px' }}>Highest Bid</div>
+                    <div style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '2px' }}>Current Highest Bid</div>
                     <div style={{ fontWeight: 800, fontSize: '1.15rem', color: '#22c55e', fontFamily: 'Outfit, sans-serif' }}>
                       ₹{auc.currentHighestBid?.toLocaleString()}/Ton
                     </div>
@@ -144,7 +144,7 @@ const Auctions = () => {
 
                 <Link to={`/auctions/${auc.id}`} className={`btn btn-block btn-sm ${auc.status === 'active' ? 'btn-orange' : 'btn-glass'}`}
                   style={{ textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  {auc.status === 'active' ? <><FaGavel /> Place Bid</> : auc.status === 'upcoming' ? <><FaEye /> View Details</> : <><FaEye /> View Results</>}
+                  {auc.status === 'active' ? <><FaGavel /> Live Auction</> : auc.status === 'upcoming' ? <><FaEye /> View Details</> : <><FaEye /> View Results</>}
                 </Link>
               </div>
             </motion.div>
