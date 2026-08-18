@@ -61,11 +61,14 @@ const Footer = () => (
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <span style={{ color: '#6ee7b7', marginTop: '2px' }}><FaLocationDot /></span>
-              <span style={{ color: '#e2e8f0', fontSize: '0.85rem', lineHeight: '1.4' }}>
+              <a href="https://maps.app.goo.gl/eUNXisHh2GkXy9ey7" target="_blank" rel="noopener noreferrer" style={{ color: '#e2e8f0', fontSize: '0.85rem', lineHeight: '1.4', textDecoration: 'none', transition: 'color 0.2s' }}
+                onMouseOver={e => e.target.style.color = '#ffffff'}
+                onMouseOut={e => e.target.style.color = '#e2e8f0'}
+              >
                 27-136-7-2 First Floor, GokulCircle,<br/>
                 Chowdepalle Road, Punganur,<br/>
                 Chittoor Dist., Andhra Pradesh - 517247, India
-              </span>
+              </a>
             </div>
           </div>
         </div>
