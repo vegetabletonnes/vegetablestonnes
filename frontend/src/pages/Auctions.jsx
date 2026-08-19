@@ -109,7 +109,7 @@ const Auctions = () => {
               <div style={{ padding: '1.25rem' }}>
                 <h3 style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem', marginBottom: '4px', color: '#0f172a' }}>{auc.productName}</h3>
                 <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <FaLocationDot style={{ color: '#22c55e', flexShrink: 0 }} /> {auc.origin} · {auc.grade} · {auc.farmerName}
+                  <FaLocationDot style={{ color: '#22c55e', flexShrink: 0 }} /> {auc.location || 'Unknown Location'} · Grade {auc.qualityGrade || 'A'} · {auc.farmerName || 'VegetableTonnes Farm Network'}
                 </p>
 
                 <div style={{ background: 'rgba(20,184,166,0.08)', borderRadius: '10px', padding: '10px 12px', marginBottom: '1rem', border: '1px solid rgba(20,184,166,0.15)' }}>
