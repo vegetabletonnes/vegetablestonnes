@@ -265,7 +265,7 @@ const AdminAuctions = () => {
                         </button>
                       )}
                       {a.status === 'active' && (
-                        <button onClick={() => handleStatusChange(a.id, 'closed')} style={{ background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316', padding: '5px 10px', borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button onClick={() => handleStatusChange(a.id, 'completed')} style={{ background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316', padding: '5px 10px', borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <FaStop /> Close
                         </button>
                       )}

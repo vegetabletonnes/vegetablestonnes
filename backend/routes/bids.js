@@ -24,10 +24,7 @@ router.post('/', verifyToken, async (req, res) => {
     if (auctionError || !auction) return res.status(404).json({ error: 'Auction not found' });
     if (auction.status !== 'active') return res.status(400).json({ error: 'Auction is not active' });
 
-    const minimumBid = Math.max(
-      Number(auction.base_price || 0),
-      Number(auction.current_highest_bid || 0) + 100
-    );
+    const minimumBid = Number(auction.base_price || 0);
     if (Number(pricePerTon) < minimumBid) {
       return res.status(400).json({ error: `Bid must be at least Rs.${minimumBid}/ton` });
     }
@@ -86,7 +83,19 @@ router.get('/mine', verifyToken, async (req, res) => {
       .eq('buyer_id', req.user.id);
 
     if (error) throw error;
-    res.json(mapRowsToCamel(myBids || []));
+    
+    // Enrich with productName
+    const enrichedBids = await Promise.all((myBids || []).map(async (bid) => {
+      const { data: auction } = await supabase.from('auctions').select('product_id').eq('id', bid.auction_id).single();
+      let productName = 'Unknown Product';
+      if (auction?.product_id) {
+        const { data: product } = await supabase.from('products').select('name').eq('id', auction.product_id).single();
+        if (product) productName = product.name;
+      }
+      return { ...bid, product_name: productName };
+    }));
+
+    res.json(mapRowsToCamel(enrichedBids));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -109,7 +118,19 @@ router.get('/farmer', verifyToken, async (req, res) => {
       .in('auction_id', auctionIds);
 
     if (bidsError) throw bidsError;
-    res.json(mapRowsToCamel(bids || []));
+    
+    // Enrich with productName
+    const enrichedBids = await Promise.all((bids || []).map(async (bid) => {
+      const { data: auction } = await supabase.from('auctions').select('product_id').eq('id', bid.auction_id).single();
+      let productName = 'Unknown Product';
+      if (auction?.product_id) {
+        const { data: product } = await supabase.from('products').select('name').eq('id', auction.product_id).single();
+        if (product) productName = product.name;
+      }
+      return { ...bid, product_name: productName };
+    }));
+
+    res.json(mapRowsToCamel(enrichedBids));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

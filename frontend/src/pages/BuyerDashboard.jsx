@@ -228,7 +228,10 @@ const BuyerDashboard = () => {
                     {bids.map(b => (
                       <tr key={b.id}>
                         <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.82rem' }}>{b.id}</code></td>
-                        <td>{b.auctionId}</td>
+                        <td>
+                          <div style={{ color: '#0f172a', fontWeight: 600 }}>{b.productName || 'Unknown Product'}</div>
+                          <div style={{ color: '#64748B', fontSize: '0.75rem' }}>{b.auctionId}</div>
+                        </td>
                         <td>{b.quantity} Tons</td>
                         <td>₹{b.pricePerTon?.toLocaleString()}</td>
                         <td style={{ fontWeight: 600 }}>₹{b.totalValue?.toLocaleString()}</td>

@@ -145,4 +145,42 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// PUT /api/auth/me - Update profile
+router.put('/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'No token provided' });
+    
+    // We will verify the token to ensure the user is logged in
+    const tokenStr = authHeader.split(' ')[1];
+    if (!tokenStr) return res.status(401).json({ error: 'Invalid token' });
+    
+    // Manually verify since we aren't using the middleware in this file
+    const jwt = await import('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+    const decoded = jwt.verify(tokenStr, JWT_SECRET);
+    
+    const { name, company, phone, location } = req.body;
+    const updates = {};
+    if (name) updates.name = name;
+    if (company) updates.company = company;
+    if (phone) updates.phone = phone;
+    if (location) updates.location = location;
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', decoded.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    const newToken = generateToken(user);
+    res.json({ message: 'Profile updated', user: safeUser(user), token: newToken });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
