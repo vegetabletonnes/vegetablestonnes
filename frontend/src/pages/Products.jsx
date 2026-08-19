@@ -7,11 +7,14 @@ import {
   FaSeedling, FaGavel, FaWarehouse, FaLeaf, FaArrowRight,
   FaMagnifyingGlass, FaFilter, FaLocationDot, FaStar,
 } from 'react-icons/fa6';
+import { DEFAULT_PRODUCTS } from '../data/defaultProducts';
 
 const gradeColors = {
+  'S (Super)': '#F59E0B',
   'A+': '#F59E0B',
   'A': '#14B8A6',
   'B': '#3B82F6',
+  'C': '#8B5CF6',
 };
 
 const auctionStatusBadge = {
@@ -35,11 +38,12 @@ const auctionStatusBadge = {
       UPCOMING
     </span>
   ),
-  none: null,
+  closed: null,
 };
 
 const ProductCard = ({ item }) => {
-  const gradeColor = gradeColors[item.qualityGrade] || '#14B8A6';
+  const gradeColor = gradeColors[item.grade] || '#14B8A6';
+  const imgUrl = item.imageUrl || item.image; // Fallback to inventory image if we added one later
 
   return (
     <motion.div
@@ -51,16 +55,16 @@ const ProductCard = ({ item }) => {
       {/* Image / Icon Header */}
       <div style={{
         height: 160,
-        background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(135deg, ${gradeColor}18 0%, rgba(20,184,166,0.06) 100%)`,
+        background: imgUrl ? `url(${imgUrl}) center/cover no-repeat` : `linear-gradient(135deg, ${gradeColor}18 0%, rgba(20,184,166,0.06) 100%)`,
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         position: 'relative', gap: '0.5rem',
       }}>
-        {item.image && (
+        {imgUrl && (
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 50%, transparent 100%)' }} />
         )}
         
-        {!item.image && (
+        {!imgUrl && (
           <div style={{
             width: 64, height: 64, borderRadius: '18px',
             background: `${gradeColor}20`, border: `2px solid ${gradeColor}35`,
@@ -72,33 +76,33 @@ const ProductCard = ({ item }) => {
         )}
         
         <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-          {auctionStatusBadge[item.auctionStatus]}
+          {auctionStatusBadge[item.auctionStatus] || null}
         </div>
         
         <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
           <span style={{
-            background: item.image ? 'rgba(0,0,0,0.7)' : `${gradeColor}20`, 
-            border: `1px solid ${item.image ? 'rgba(255,255,255,0.3)' : `${gradeColor}35`}`,
-            color: item.image ? '#fff' : gradeColor, 
+            background: imgUrl ? 'rgba(0,0,0,0.7)' : `${gradeColor}20`, 
+            border: `1px solid ${imgUrl ? 'rgba(255,255,255,0.3)' : `${gradeColor}35`}`,
+            color: imgUrl ? '#fff' : gradeColor, 
             padding: '3px 10px', borderRadius: 999,
             fontSize: '0.7rem', fontWeight: 700, fontFamily: 'Inter, sans-serif',
-            backdropFilter: item.image ? 'blur(4px)' : 'none',
+            backdropFilter: imgUrl ? 'blur(4px)' : 'none',
             boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-          }}>Grade {item.qualityGrade || 'A'}</span>
+          }}>Grade {item.grade || 'A'}</span>
         </div>
       </div>
 
       {/* Body */}
       <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', marginBottom: '2px', color: '#0f172a' }}>{item.name}</h3>
-          <div style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600, marginBottom: '6px' }}>{item.category}</div>
+          <h3 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', marginBottom: '2px', color: '#0f172a' }}>{item.commodity}</h3>
+          <div style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600, marginBottom: '6px' }}>{item.variety}</div>
           <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748B', marginTop: 'auto' }}>
           <FaLocationDot style={{ color: '#14B8A6', fontSize: '0.72rem' }} />
-          <span>{item.location}</span>
+          <span>{item.warehouse}</span>
         </div>
       </div>
     </motion.div>
@@ -114,66 +118,50 @@ const Products = () => {
   const [sortBy, setSortBy] = useState('default');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchInventory = async () => {
       try {
         setLoading(true);
-        const [prodRes, aucRes] = await Promise.all([
-          axios.get('/api/products'),
-          axios.get('/api/auctions')
-        ]);
+        const params = {};
+        if (search) params.search = search;
+        if (filterGrade) params.grade = filterGrade;
+        if (filterStatus) params.auctionStatus = filterStatus;
         
-        let apiItems = prodRes.data || [];
-        const allAuctions = aucRes.data || [];
-
-        // Apply search filter
-        if (search) {
-          const q = search.toLowerCase();
-          apiItems = apiItems.filter(p => 
-            p.name?.toLowerCase().includes(q) || 
-            p.location?.toLowerCase().includes(q) || 
-            p.category?.toLowerCase().includes(q)
-          );
-        }
+        const res = await axios.get('/api/inventory', { params });
+        let apiItems = res.data || [];
         
-        // Apply grade filter
-        if (filterGrade) {
-          apiItems = apiItems.filter(p => p.qualityGrade === filterGrade || p.grade === filterGrade);
-        }
-
-        // Attach auction status
-        apiItems = apiItems.map(p => {
-          const activeAuc = allAuctions.find(a => a.productId === p.id && a.status === 'active');
-          const upcomingAuc = allAuctions.find(a => a.productId === p.id && a.status === 'upcoming');
-          
-          return {
-            ...p,
-            auctionStatus: activeAuc ? 'active' : upcomingAuc ? 'upcoming' : 'none'
-          };
+        // Merge the image URLs from DEFAULT_PRODUCTS into the DB response
+        // This ensures the DB data (warehouse, price, etc.) is respected but we keep the beautiful images.
+        const mergedItems = apiItems.map(apiItem => {
+          const defaultProd = DEFAULT_PRODUCTS.find(dp => dp.id === apiItem.id);
+          if (defaultProd) {
+            return { ...apiItem, imageUrl: defaultProd.imageUrl };
+          }
+          return apiItem;
         });
 
-        // Apply auction status filter
-        if (filterStatus) {
-          apiItems = apiItems.filter(p => p.auctionStatus === filterStatus);
-        }
+        // The seed database might not have all defaults if it was wiped. 
+        // We append any defaults that are entirely missing from the API response just in case.
+        const dbIds = new Set(apiItems.map(p => p.id));
+        const missingDefaults = DEFAULT_PRODUCTS.filter(dp => !dbIds.has(dp.id));
 
-        setItems(apiItems);
-      } catch {
+        setItems([...mergedItems, ...missingDefaults]);
+      } catch (err) {
         toast.error('Failed to load products');
+        // Fallback entirely to defaults if API fails
+        setItems(DEFAULT_PRODUCTS);
       } finally {
         setLoading(false);
       }
     };
-    const delay = setTimeout(fetchProducts, 300);
+    
+    const delay = setTimeout(fetchInventory, 300);
     return () => clearTimeout(delay);
   }, [search, filterGrade, filterStatus]);
 
   const sorted = [...items].sort((a, b) => {
-    const priceA = (a.pricePerKg || 0) * 1000;
-    const priceB = (b.pricePerKg || 0) * 1000;
-    
-    if (sortBy === 'price-asc') return priceA - priceB;
-    if (sortBy === 'price-desc') return priceB - priceA;
-    if (sortBy === 'qty-desc') return (b.totalTons || 0) - (a.totalTons || 0);
+    if (sortBy === 'price-asc') return (a.basePricePerTon || 0) - (b.basePricePerTon || 0);
+    if (sortBy === 'price-desc') return (b.basePricePerTon || 0) - (a.basePricePerTon || 0);
+    if (sortBy === 'qty-desc') return (b.availableTons || 0) - (a.availableTons || 0);
     return 0;
   });
 
@@ -183,12 +171,12 @@ const Products = () => {
       <section style={{ padding: '3rem 0 1.5rem' }}>
         <div className="container">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="section-tag"><FaSeedling /> Wholesale Produce</span>
+            <span className="section-tag"><FaSeedling /> Wholesale Inventory</span>
             <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, marginBottom: '0.75rem' }}>
               Fresh <span className="gradient-text">Produce Catalog</span>
             </h1>
             <p style={{ color: '#475569', maxWidth: 560, lineHeight: 1.8, marginTop: '0.5rem' }}>
-              Browse verified wholesale vegetable and fruit stock. All commodities are graded and warehouse-ready. Place bids directly on active live auctions.
+              Browse verified wholesale vegetable and fruit inventory. All commodities are graded and warehouse-ready. Place bids directly on live auctions.
             </p>
           </motion.div>
         </div>
@@ -230,8 +218,9 @@ const Products = () => {
               }}
             >
               <option value="">All Grades</option>
-              <option value="A+">Grade A+ (Export)</option>
-              <option value="A">Grade A (Standard)</option>
+              <option value="S (Super)">Grade S (Super)</option>
+              <option value="A+">Grade A+</option>
+              <option value="A">Grade A</option>
               <option value="B">Grade B</option>
             </select>
 
