@@ -130,21 +130,25 @@ const Products = () => {
         let apiItems = res.data || [];
         
         // Merge the image URLs from DEFAULT_PRODUCTS into the DB response
-        // This ensures the DB data (warehouse, price, etc.) is respected but we keep the beautiful images.
+        // Match by exact ID first, then fuzzy match by commodity name so even manually added defaults get their image!
+        const getFallbackImage = (commodityName) => {
+          if (!commodityName) return null;
+          const lower = commodityName.toLowerCase();
+          if (lower.includes('tomato')) return '/tomatoes.jpg';
+          if (lower.includes('watermelon')) return '/Watermelons.jpeg';
+          if (lower.includes('muskmelon')) return '/Muskmelons.jpg';
+          if (lower.includes('mango')) return '/Mangoes.jpg';
+          if (lower.includes('groundnut')) return '/Groundnuts.jpg';
+          return null;
+        };
+
         const mergedItems = apiItems.map(apiItem => {
           const defaultProd = DEFAULT_PRODUCTS.find(dp => dp.id === apiItem.id);
-          if (defaultProd) {
-            return { ...apiItem, imageUrl: defaultProd.imageUrl };
-          }
-          return apiItem;
+          const fallbackImage = getFallbackImage(apiItem.commodity);
+          return { ...apiItem, imageUrl: defaultProd?.imageUrl || fallbackImage || apiItem.imageUrl || apiItem.image };
         });
 
-        // The seed database might not have all defaults if it was wiped. 
-        // We append any defaults that are entirely missing from the API response just in case.
-        const dbIds = new Set(apiItems.map(p => p.id));
-        const missingDefaults = DEFAULT_PRODUCTS.filter(dp => !dbIds.has(dp.id));
-
-        setItems([...mergedItems, ...missingDefaults]);
+        setItems(mergedItems);
       } catch (err) {
         toast.error('Failed to load products');
         // Fallback entirely to defaults if API fails
