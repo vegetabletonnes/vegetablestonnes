@@ -58,6 +58,7 @@ const AuctionDetail = () => {
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState('');
   const [price, setPrice] = useState('');
+  const [destination, setDestination] = useState(user?.location || '');
   const [submitting, setSubmitting] = useState(false);
 
   const fetchData = async () => {
@@ -82,6 +83,13 @@ const AuctionDetail = () => {
     return () => clearInterval(interval);
   }, [id]);
 
+  useEffect(() => {
+    // If user logs in after page load, populate destination
+    if (user?.location && !destination) {
+      setDestination(user.location);
+    }
+  }, [user]);
+
   const handleBid = async (e) => {
     e.preventDefault();
     if (!isLoggedIn) { toast.error('Please login to place a bid'); navigate('/auth'); return; }
@@ -93,6 +101,7 @@ const AuctionDetail = () => {
         auctionId: id,
         quantity: Number(qty),
         pricePerTon: Number(price),
+        destination: destination,
       });
       toast.success(`Bid placed! ₹${Number(price).toLocaleString()}/Ton for ${qty} Tons`);
       setQty(''); setPrice('');
@@ -210,6 +219,11 @@ const AuctionDetail = () => {
                       <input type="number" value={price} onChange={e => setPrice(e.target.value)}
                         min={auction.basePrice}
                         placeholder={`Min: ₹${auction.basePrice?.toLocaleString()}`} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Delivery Destination</label>
+                      <input type="text" value={destination} onChange={e => setDestination(e.target.value)}
+                        placeholder="e.g. APMC Yard, Bengaluru" required />
                     </div>
                     {qty && price && (
                       <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '1rem', marginBottom: '1rem' }}>
