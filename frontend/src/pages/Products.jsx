@@ -7,24 +7,39 @@ import {
   FaSeedling, FaGavel, FaWarehouse, FaLeaf, FaArrowRight,
   FaMagnifyingGlass, FaFilter, FaLocationDot, FaStar,
 } from 'react-icons/fa6';
-import { DEFAULT_PRODUCTS } from '../data/defaultProducts';
 
 const gradeColors = {
-  'S (Super)': '#F59E0B',
+  'A+': '#F59E0B',
   'A': '#14B8A6',
   'B': '#3B82F6',
-  'C': '#8B5CF6',
 };
 
 const auctionStatusBadge = {
-  active: <span className="badge badge-teal">● Live Auction</span>,
-  upcoming: <span className="badge badge-amber">Upcoming</span>,
-  closed: <span className="badge badge-neutral">Closed</span>,
+  active: (
+    <span className="badge" style={{ 
+      background: '#dc2626', color: '#fff', border: '1px solid #fca5a5', 
+      padding: '4px 12px', fontSize: '0.75rem', fontWeight: 800, 
+      textShadow: '0 1px 2px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', 
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)', animation: 'pulse-live 2s infinite'
+    }}>
+      ● LIVE AUCTION
+    </span>
+  ),
+  upcoming: (
+    <span className="badge" style={{ 
+      background: '#f59e0b', color: '#fff', border: '1px solid #fcd34d', 
+      padding: '4px 12px', fontSize: '0.75rem', fontWeight: 800, 
+      textShadow: '0 1px 2px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', 
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+    }}>
+      UPCOMING
+    </span>
+  ),
+  none: null,
 };
 
 const ProductCard = ({ item }) => {
-  const gradeColor = gradeColors[item.grade] || '#14B8A6';
-  const availPct = Math.round((item.availableTons / item.totalQuantityTons) * 100);
+  const gradeColor = gradeColors[item.qualityGrade] || '#14B8A6';
 
   return (
     <motion.div
@@ -36,16 +51,16 @@ const ProductCard = ({ item }) => {
       {/* Image / Icon Header */}
       <div style={{
         height: 160,
-        background: item.imageUrl ? `url(${item.imageUrl}) center/cover no-repeat` : `linear-gradient(135deg, ${gradeColor}18 0%, rgba(20,184,166,0.06) 100%)`,
+        background: item.image ? `url(${item.image}) center/cover no-repeat` : `linear-gradient(135deg, ${gradeColor}18 0%, rgba(20,184,166,0.06) 100%)`,
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         position: 'relative', gap: '0.5rem',
       }}>
-        {item.imageUrl && (
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 50%, transparent 100%)' }} />
+        {item.image && (
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 50%, transparent 100%)' }} />
         )}
         
-        {!item.imageUrl && (
+        {!item.image && (
           <div style={{
             width: 64, height: 64, borderRadius: '18px',
             background: `${gradeColor}20`, border: `2px solid ${gradeColor}35`,
@@ -55,32 +70,35 @@ const ProductCard = ({ item }) => {
             <FaLeaf style={{ color: gradeColor }} />
           </div>
         )}
+        
         <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-          {auctionStatusBadge[item.auctionStatus] || null}
+          {auctionStatusBadge[item.auctionStatus]}
         </div>
+        
         <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
           <span style={{
-            background: item.imageUrl ? 'rgba(0,0,0,0.6)' : `${gradeColor}20`, 
-            border: `1px solid ${item.imageUrl ? 'rgba(255,255,255,0.2)' : `${gradeColor}35`}`,
-            color: item.imageUrl ? '#fff' : gradeColor, 
-            padding: '2px 9px', borderRadius: 999,
-            fontSize: '0.68rem', fontWeight: 700, fontFamily: 'Inter, sans-serif',
-            backdropFilter: item.imageUrl ? 'blur(4px)' : 'none'
-          }}>Grade {item.grade}</span>
+            background: item.image ? 'rgba(0,0,0,0.7)' : `${gradeColor}20`, 
+            border: `1px solid ${item.image ? 'rgba(255,255,255,0.3)' : `${gradeColor}35`}`,
+            color: item.image ? '#fff' : gradeColor, 
+            padding: '3px 10px', borderRadius: 999,
+            fontSize: '0.7rem', fontWeight: 700, fontFamily: 'Inter, sans-serif',
+            backdropFilter: item.image ? 'blur(4px)' : 'none',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+          }}>Grade {item.qualityGrade || 'A'}</span>
         </div>
       </div>
 
       {/* Body */}
       <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div>
-          <h3 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', marginBottom: '2px', color: '#0f172a' }}>{item.commodity}</h3>
-          <div style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600, marginBottom: '6px' }}>{item.variety}</div>
-          <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>{item.description}</p>
+          <h3 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', marginBottom: '2px', color: '#0f172a' }}>{item.name}</h3>
+          <div style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600, marginBottom: '6px' }}>{item.category}</div>
+          <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748B', marginTop: 'auto' }}>
           <FaLocationDot style={{ color: '#14B8A6', fontSize: '0.72rem' }} />
-          <span>{item.warehouse}</span>
+          <span>{item.location}</span>
         </div>
       </div>
     </motion.div>
@@ -96,31 +114,66 @@ const Products = () => {
   const [sortBy, setSortBy] = useState('default');
 
   useEffect(() => {
-    const fetchInventory = async () => {
+    const fetchProducts = async () => {
       try {
-        const params = {};
-        if (search) params.search = search;
-        if (filterGrade) params.grade = filterGrade;
-        if (filterStatus) params.auctionStatus = filterStatus;
-        const res = await axios.get('/api/inventory', { params });
-        const apiItems = res.data || [];
-        const defaultIds = new Set(DEFAULT_PRODUCTS.map((p) => p.id));
-        const extra = apiItems.filter((p) => !defaultIds.has(p.id) && !p.isDefault);
-        setItems([...DEFAULT_PRODUCTS, ...extra]);
+        setLoading(true);
+        const [prodRes, aucRes] = await Promise.all([
+          axios.get('/api/products'),
+          axios.get('/api/auctions')
+        ]);
+        
+        let apiItems = prodRes.data || [];
+        const allAuctions = aucRes.data || [];
+
+        // Apply search filter
+        if (search) {
+          const q = search.toLowerCase();
+          apiItems = apiItems.filter(p => 
+            p.name?.toLowerCase().includes(q) || 
+            p.location?.toLowerCase().includes(q) || 
+            p.category?.toLowerCase().includes(q)
+          );
+        }
+        
+        // Apply grade filter
+        if (filterGrade) {
+          apiItems = apiItems.filter(p => p.qualityGrade === filterGrade || p.grade === filterGrade);
+        }
+
+        // Attach auction status
+        apiItems = apiItems.map(p => {
+          const activeAuc = allAuctions.find(a => a.productId === p.id && a.status === 'active');
+          const upcomingAuc = allAuctions.find(a => a.productId === p.id && a.status === 'upcoming');
+          
+          return {
+            ...p,
+            auctionStatus: activeAuc ? 'active' : upcomingAuc ? 'upcoming' : 'none'
+          };
+        });
+
+        // Apply auction status filter
+        if (filterStatus) {
+          apiItems = apiItems.filter(p => p.auctionStatus === filterStatus);
+        }
+
+        setItems(apiItems);
       } catch {
-        setItems(DEFAULT_PRODUCTS);
+        toast.error('Failed to load products');
       } finally {
         setLoading(false);
       }
     };
-    const delay = setTimeout(fetchInventory, 300);
+    const delay = setTimeout(fetchProducts, 300);
     return () => clearTimeout(delay);
   }, [search, filterGrade, filterStatus]);
 
   const sorted = [...items].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.basePricePerTon - b.basePricePerTon;
-    if (sortBy === 'price-desc') return b.basePricePerTon - a.basePricePerTon;
-    if (sortBy === 'qty-desc') return b.availableTons - a.availableTons;
+    const priceA = (a.pricePerKg || 0) * 1000;
+    const priceB = (b.pricePerKg || 0) * 1000;
+    
+    if (sortBy === 'price-asc') return priceA - priceB;
+    if (sortBy === 'price-desc') return priceB - priceA;
+    if (sortBy === 'qty-desc') return (b.totalTons || 0) - (a.totalTons || 0);
     return 0;
   });
 
@@ -130,12 +183,12 @@ const Products = () => {
       <section style={{ padding: '3rem 0 1.5rem' }}>
         <div className="container">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="section-tag"><FaSeedling /> Wholesale Inventory</span>
+            <span className="section-tag"><FaSeedling /> Wholesale Produce</span>
             <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, marginBottom: '0.75rem' }}>
               Fresh <span className="gradient-text">Produce Catalog</span>
             </h1>
             <p style={{ color: '#475569', maxWidth: 560, lineHeight: 1.8, marginTop: '0.5rem' }}>
-              Browse verified wholesale vegetable inventory. All commodities are graded and warehouse-ready. Place bids directly on live auctions.
+              Browse verified wholesale vegetable and fruit stock. All commodities are graded and warehouse-ready. Place bids directly on active live auctions.
             </p>
           </motion.div>
         </div>
@@ -177,8 +230,8 @@ const Products = () => {
               }}
             >
               <option value="">All Grades</option>
-              <option value="S (Super)">Grade S (Super)</option>
-              <option value="A">Grade A</option>
+              <option value="A+">Grade A+ (Export)</option>
+              <option value="A">Grade A (Standard)</option>
               <option value="B">Grade B</option>
             </select>
 
@@ -192,9 +245,9 @@ const Products = () => {
                 color: '#0f172a', fontFamily: 'Inter, sans-serif', fontSize: '0.88rem', outline: 'none', cursor: 'pointer',
               }}
             >
-              <option value="">All Auctions</option>
+              <option value="">All Products</option>
               <option value="active">Live Auctions</option>
-              <option value="upcoming">Upcoming</option>
+              <option value="upcoming">Upcoming Auctions</option>
             </select>
 
             <select
@@ -216,7 +269,7 @@ const Products = () => {
 
           {!loading && (
             <div style={{ marginTop: '0.75rem', fontSize: '0.82rem', color: '#64748B' }}>
-              Showing <strong style={{ color: '#14B8A6' }}>{sorted.length}</strong> commodities
+              Showing <strong style={{ color: '#14B8A6' }}>{sorted.length}</strong> farm products
             </div>
           )}
         </div>
