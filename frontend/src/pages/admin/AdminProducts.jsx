@@ -13,11 +13,14 @@ const AdminProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
     category: 'Root Vegetables',
     image: '',
+    imageFile: null,
+    imagePreview: '',
     farmerName: '',
     location: '',
     pricePerKg: '',
@@ -47,7 +50,9 @@ const AdminProducts = () => {
     setFormData({
       name: '',
       category: 'Root Vegetables',
-      image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80',
+      image: '',
+      imageFile: null,
+      imagePreview: '',
       farmerName: 'GreenEarth Farms',
       location: 'Nashik, MH',
       pricePerKg: '25',
@@ -64,6 +69,8 @@ const AdminProducts = () => {
       name: prod.name || '',
       category: prod.category || 'Root Vegetables',
       image: prod.image || '',
+      imageFile: null,
+      imagePreview: prod.image || '',
       farmerName: prod.farmerName || '',
       location: prod.location || '',
       pricePerKg: prod.pricePerKg || '',
@@ -74,11 +81,35 @@ const AdminProducts = () => {
     setModalOpen(true);
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        imageFile: file,
+        imagePreview: URL.createObjectURL(file),
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsUploading(true);
+      let imageUrl = formData.image;
+
+      if (formData.imageFile) {
+        const uploadData = new FormData();
+        uploadData.append('image', formData.imageFile);
+        const uploadRes = await axios.post('/api/upload', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        imageUrl = uploadRes.data.url;
+      }
+
       const payload = {
         ...formData,
+        image: imageUrl,
         pricePerKg: Number(formData.pricePerKg),
         totalTons: Number(formData.totalTons),
       };
@@ -94,6 +125,8 @@ const AdminProducts = () => {
       fetchProducts();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Operation failed');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -339,14 +372,19 @@ const AdminProducts = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#9ca3af', marginBottom: '4px' }}>Image URL</label>
-                  <input
-                    type="url"
-                    className="input-field"
-                    placeholder="https://..."
-                    value={formData.image}
-                    onChange={e => setFormData({ ...formData, image: e.target.value })}
-                  />
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#9ca3af', marginBottom: '4px' }}>Produce Image</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {formData.imagePreview && (
+                      <img src={formData.imagePreview} alt="Preview" style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="input-field"
+                      onChange={handleImageChange}
+                      style={{ padding: '0.5rem' }}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -361,8 +399,10 @@ const AdminProducts = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                  <button type="button" onClick={() => setModalOpen(false)} className="btn btn-glass">Cancel</button>
-                  <button type="submit" className="btn btn-primary">{editingProduct ? 'Save Changes' : 'Create Produce Listing'}</button>
+                  <button type="button" onClick={() => setModalOpen(false)} className="btn btn-glass" disabled={isUploading}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={isUploading}>
+                    {isUploading ? 'Uploading...' : (editingProduct ? 'Save Changes' : 'Create Produce Listing')}
+                  </button>
                 </div>
               </form>
             </motion.div>

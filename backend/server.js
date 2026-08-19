@@ -10,6 +10,7 @@ import inventoryRoutes from './routes/inventory.js';
 import notificationRoutes from './routes/notifications.js';
 import paymentRoutes from './routes/payments.js';
 import invoiceRoutes from './routes/invoices.js';
+import uploadRoutes from './routes/upload.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'VegetableTonnes API v2 running', time: new Date().toISOString() });

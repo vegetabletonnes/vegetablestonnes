@@ -11,6 +11,7 @@ const AdminAuctions = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAuction, setEditingAuction] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     productId: '',
@@ -23,6 +24,8 @@ const AdminAuctions = () => {
     qualityGrade: 'A+',
     durationHours: '24',
     image: '',
+    imageFile: null,
+    imagePreview: '',
   });
 
   const fetchData = async () => {
@@ -59,6 +62,8 @@ const AdminAuctions = () => {
         basePrice: (prod.pricePerKg * 1000).toString(),
         qualityGrade: prod.qualityGrade || 'A+',
         image: prod.image,
+        imageFile: null,
+        imagePreview: prod.image || '',
       }));
     } else {
       setFormData(prev => ({ ...prev, productId: prodId }));
@@ -77,14 +82,39 @@ const AdminAuctions = () => {
       minOrder: '5',
       qualityGrade: 'A+',
       durationHours: '24',
-      image: products[0]?.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80',
+      image: products[0]?.image || '',
+      imageFile: null,
+      imagePreview: products[0]?.image || '',
     });
     setModalOpen(true);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        imageFile: file,
+        imagePreview: URL.createObjectURL(file),
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsUploading(true);
+      let imageUrl = formData.image;
+
+      if (formData.imageFile) {
+        const uploadData = new FormData();
+        uploadData.append('image', formData.imageFile);
+        const uploadRes = await axios.post('/api/upload', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        imageUrl = uploadRes.data.url;
+      }
+
       const endTime = new Date(Date.now() + Number(formData.durationHours) * 3600 * 1000).toISOString();
       const payload = {
         productId: formData.productId,
@@ -95,7 +125,7 @@ const AdminAuctions = () => {
         basePrice: Number(formData.basePrice),
         minOrder: Number(formData.minOrder),
         qualityGrade: formData.qualityGrade,
-        image: formData.image,
+        image: imageUrl,
         endTime,
       };
 
@@ -110,6 +140,8 @@ const AdminAuctions = () => {
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save auction');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -311,9 +343,27 @@ const AdminAuctions = () => {
                   </div>
                 </div>
 
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: '#9ca3af', marginBottom: '4px' }}>Auction Display Image</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {formData.imagePreview && (
+                      <img src={formData.imagePreview} alt="Preview" style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="input-field"
+                      onChange={handleImageChange}
+                      style={{ padding: '0.5rem' }}
+                    />
+                  </div>
+                </div>
+
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                  <button type="button" onClick={() => setModalOpen(false)} className="btn btn-glass">Cancel</button>
-                  <button type="submit" className="btn btn-primary">Launch Auction</button>
+                  <button type="button" onClick={() => setModalOpen(false)} className="btn btn-glass" disabled={isUploading}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={isUploading}>
+                    {isUploading ? 'Uploading...' : 'Launch Auction'}
+                  </button>
                 </div>
               </form>
             </motion.div>
