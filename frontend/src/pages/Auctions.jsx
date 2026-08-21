@@ -42,7 +42,7 @@ const Auctions = () => {
 
   const filtered = filter === 'all' ? auctions : auctions.filter(a => a.status === filter);
 
-  const statusColor = { active: 'badge-live', upcoming: 'badge-blue', closed: 'badge-red' };
+  const statusColor = { active: 'badge-live', upcoming: 'badge-blue', completed: 'badge-neutral', closed: 'badge-neutral' };
 
   return (
     <div className="page-section">

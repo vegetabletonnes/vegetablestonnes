@@ -11,24 +11,36 @@ const TABS = [
 
 const AdminSettings = () => {
   const [tab, setTab] = useState('company');
-  const [company, setCompany] = useState({
-    name: 'VegetableTonnes Agri Exchange Pvt. Ltd.',
-    gstin: '29AABCV1234M1Z5',
-    email: 'support@vegetabletonnes.com',
-    phone: '+91 98765 00000',
-    address: 'Agri Tech Park, Pune, Maharashtra 411001',
-    website: 'https://vegetabletonnes.com',
+  const [company, setCompany] = useState(() => {
+    const saved = localStorage.getItem('vt_admin_company');
+    return saved ? JSON.parse(saved) : {
+      name: 'VegetableTonnes Agri Exchange Pvt. Ltd.',
+      gstin: '29AABCV1234M1Z5',
+      email: 'support@vegetabletonnes.com',
+      phone: '+91 98765 00000',
+      address: 'Agri Tech Park, Pune, Maharashtra 411001',
+      website: 'https://vegetabletonnes.com',
+    };
   });
-  const [auctionRules, setAuctionRules] = useState({
-    minIncrement: 100,
-    minOrderTons: 5,
-    maxBidDuration: 7,
-    autoCloseEnabled: true,
-    requireVerification: true,
+  const [auctionRules, setAuctionRules] = useState(() => {
+    const saved = localStorage.getItem('vt_admin_auction');
+    return saved ? JSON.parse(saved) : {
+      minIncrement: 100,
+      minOrderTons: 5,
+      maxBidDuration: 7,
+      autoCloseEnabled: true,
+      requireVerification: true,
+    };
   });
 
-  const handleSaveCompany = () => toast.success('Company info saved!');
-  const handleSaveAuction = () => toast.success('Auction rules saved!');
+  const handleSaveCompany = () => {
+    localStorage.setItem('vt_admin_company', JSON.stringify(company));
+    toast.success('Company info saved!');
+  };
+  const handleSaveAuction = () => {
+    localStorage.setItem('vt_admin_auction', JSON.stringify(auctionRules));
+    toast.success('Auction rules saved!');
+  };
 
   return (
     <div>
