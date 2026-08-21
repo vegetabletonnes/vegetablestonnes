@@ -207,11 +207,11 @@ const AdminBids = () => {
                       <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.78rem' }}>{bid.id}</code></td>
                       <td>
                         <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0f172a' }}>{bid.buyerName}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{bid.buyerCompany}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{bid.buyerCompany || bid.buyerId?.substring(0, 8) + '...'}</div>
                       </td>
                       <td>
                         <div style={{ color: '#0f172a', fontWeight: 600 }}>{bid.productName || 'Unknown Product'}</div>
-                        <div style={{ color: '#64748B', fontSize: '0.75rem' }}>{bid.auctionId}</div>
+                        <div style={{ color: '#64748B', fontSize: '0.75rem' }}>{bid.auctionId?.substring(0, 8)}...</div>
                       </td>
                       <td style={{ color: '#0f172a' }}>{bid.quantity}</td>
                       <td style={{ color: '#0f172a' }}>₹{bid.pricePerTon?.toLocaleString()}</td>
