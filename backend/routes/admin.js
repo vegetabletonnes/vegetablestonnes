@@ -227,7 +227,31 @@ router.get('/bids', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { data: bids, error } = await supabase.from('bids').select('*');
     if (error) throw error;
-    res.json(mapRowsToCamel(bids || []));
+    
+    // Enrich with productName and buyer details
+    const enrichedBids = await Promise.all((bids || []).map(async (bid) => {
+      let productName = 'Unknown Product';
+      let buyerName = 'Unknown Buyer';
+      let buyerCompany = 'Unknown Company';
+      
+      const { data: auction } = await supabase.from('auctions').select('product_id').eq('id', bid.auction_id).single();
+      if (auction?.product_id) {
+        const { data: product } = await supabase.from('products').select('name').eq('id', auction.product_id).single();
+        if (product) productName = product.name;
+      }
+      
+      if (bid.buyer_id) {
+        const { data: user } = await supabase.from('users').select('name, company').eq('id', bid.buyer_id).single();
+        if (user) {
+          buyerName = user.name || buyerName;
+          buyerCompany = user.company || buyerCompany;
+        }
+      }
+      
+      return { ...bid, product_name: productName, buyer_name: buyerName, buyer_company: buyerCompany };
+    }));
+
+    res.json(mapRowsToCamel(enrichedBids));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
