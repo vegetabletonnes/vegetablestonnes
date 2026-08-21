@@ -146,9 +146,10 @@ const AuctionDetail = () => {
                       {auction.status === 'active' ? 'LIVE AUCTION' : auction.status.toUpperCase()}
                     </span>
                     <h2 style={{ fontFamily: 'Outfit, sans-serif', marginBottom: '4px' }}>{auction.productName}</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.88rem' }}>by {auction.farmerName} · {auction.origin}</p>
+                    <p style={{ color: '#6b7280', fontSize: '0.88rem' }}>
+                      by {auction.farmerName || 'VegetableTonnes Farm Network'} · {auction.location || 'Unknown Location'} · Grade {auction.qualityGrade || 'A'}
+                    </p>
                   </div>
-                  <span className="badge badge-green">{auction.grade}</span>
                 </div>
                 <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6 }}>{auction.description}</p>
               </div>
