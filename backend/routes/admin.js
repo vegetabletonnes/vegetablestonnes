@@ -301,7 +301,35 @@ router.get('/orders', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { data: orders, error } = await supabase.from('orders').select('*');
     if (error) throw error;
-    res.json(mapRowsToCamel(orders || []));
+    
+    // Enrich with commodity, buyer, and farmer details
+    const enrichedOrders = await Promise.all((orders || []).map(async (order) => {
+      let commodity = 'Vegetables';
+      let buyerCompany = 'Bulk Buyer';
+      let farmerName = 'Direct Farm Source';
+      
+      if (order.auction_id) {
+        const { data: auction } = await supabase.from('auctions').select('product_id').eq('id', order.auction_id).single();
+        if (auction?.product_id) {
+          const { data: product } = await supabase.from('products').select('name').eq('id', auction.product_id).single();
+          if (product) commodity = product.name;
+        }
+      }
+      
+      if (order.buyer_id) {
+        const { data: buyer } = await supabase.from('users').select('company, name').eq('id', order.buyer_id).single();
+        if (buyer) buyerCompany = buyer.company || buyer.name || buyerCompany;
+      }
+      
+      if (order.farmer_id) {
+        const { data: farmer } = await supabase.from('users').select('name, company').eq('id', order.farmer_id).single();
+        if (farmer) farmerName = farmer.company || farmer.name || farmerName;
+      }
+      
+      return { ...order, commodity, buyer_company: buyerCompany, farmer_name: farmerName };
+    }));
+
+    res.json(mapRowsToCamel(enrichedOrders));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -58,15 +58,15 @@ const AdminOrders = () => {
               {orders.map(o => (
                 <tr key={o.id} style={{ borderBottom: '1px solid rgba(15,23,42,0.06)' }}>
                   <td style={{ padding: '1rem' }}>
-                    <div style={{ fontWeight: 700, color: '#059669', fontFamily: 'Outfit, sans-serif' }}>{o.id}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{new Date(o.createdAt).toLocaleDateString()}</div>
+                    <div style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.85rem' }}>{o.id?.substring(0, 8)}...</div>
+                    <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>{new Date(o.createdAt).toLocaleDateString()}</div>
                   </td>
-                  <td style={{ padding: '1rem', fontWeight: 600, color: '#0f172a' }}>
+                  <td style={{ padding: '1rem', fontWeight: 600, color: '#1f2937' }}>
                     {o.commodity || 'Vegetables'}
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ color: '#0f172a', fontWeight: 600 }}>{o.buyerCompany || 'Bulk Buyer'}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>ID: {o.buyerId}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>ID: {o.buyerId?.substring(0, 8)}...</div>
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ color: '#475569', fontWeight: 500 }}>{o.farmerName || 'Direct Farm Source'}</div>
