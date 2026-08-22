@@ -147,7 +147,15 @@ const AdminAuctions = () => {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await axios.put(`/api/auctions/${id}`, { status: newStatus });
+      const payload = { status: newStatus };
+      if (newStatus === 'active') {
+        const auc = auctions.find(a => a.id === id);
+        // If it's already expired, extend it by 24 hours so it doesn't instantly end
+        if (auc && new Date(auc.endTime) < new Date()) {
+          payload.endTime = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+        }
+      }
+      await axios.put(`/api/auctions/${id}`, payload);
       toast.success(`Auction status set to ${newStatus}`);
       fetchData();
     } catch (err) {
