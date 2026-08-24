@@ -131,8 +131,8 @@ const MyBids = () => {
                   <tbody>
                     {filtered.map(b => (
                       <tr key={b.id}>
-                        <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.78rem' }}>{b.id}</code></td>
-                        <td style={{ color: '#64748B', fontSize: '0.82rem' }}>{b.auctionId?.substring(0, 8)}...</td>
+                        <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.78rem' }}>{formatDisplayId('BID', b.id)}</code></td>
+                        <td style={{ color: '#64748B', fontSize: '0.82rem' }}>{formatDisplayId(b.productName, b.auctionId)}</td>
                         <td style={{ fontWeight: 600, color: '#0f172a' }}>{b.productName || '—'}</td>
                         <td style={{ color: '#0f172a' }}>{b.quantity}</td>
                         <td style={{ color: '#0f172a' }}>₹{b.pricePerTon?.toLocaleString()}</td>
