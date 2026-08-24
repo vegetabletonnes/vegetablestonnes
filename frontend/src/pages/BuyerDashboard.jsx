@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { formatDisplayId } from '../utils/formatId';
 import { FaTruck, FaGavel, FaCheck, FaCoins, FaLocationDot, FaTicket, FaHourglass, FaXmark } from 'react-icons/fa6';
 
 const VehicleModal = ({ order, onClose, onSuccess }) => {
@@ -173,7 +174,7 @@ const BuyerDashboard = () => {
                   <tbody>
                     {orders.map(o => (
                       <tr key={o.id}>
-                        <td><strong style={{ color: '#059669' }}>{o.id}</strong></td>
+                        <td><strong style={{ color: '#059669' }}>{formatDisplayId(o.commodity, o.id)}</strong></td>
                         <td style={{ color: '#0f172a' }}>{o.commodity}</td>
                         <td style={{ color: '#0f172a' }}>{o.quantity} Tons</td>
                         <td style={{ color: '#0f172a' }}>₹{o.bidPrice?.toLocaleString()}/Ton</td>
@@ -227,10 +228,10 @@ const BuyerDashboard = () => {
                   <tbody>
                     {bids.map(b => (
                       <tr key={b.id}>
-                        <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.82rem' }}>{b.id}</code></td>
+                        <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.82rem' }}>{formatDisplayId('BID', b.id)}</code></td>
                         <td>
                           <div style={{ color: '#0f172a', fontWeight: 600 }}>{b.productName || 'Unknown Product'}</div>
-                          <div style={{ color: '#64748B', fontSize: '0.75rem' }}>{b.auctionId}</div>
+                          <div style={{ color: '#64748B', fontSize: '0.75rem' }}>{formatDisplayId(b.productName, b.auctionId)}</div>
                         </td>
                         <td>{b.quantity} Tons</td>
                         <td>₹{b.pricePerTon?.toLocaleString()}</td>

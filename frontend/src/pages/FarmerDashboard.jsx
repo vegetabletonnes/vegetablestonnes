@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { formatDisplayId } from '../utils/formatId';
 
 const FarmerDashboard = () => {
   const { user } = useAuth();
@@ -141,11 +142,11 @@ const FarmerDashboard = () => {
                   <tbody>
                     {bids.map(b => (
                       <tr key={b.id}>
-                        <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.78rem' }}>{b.id}</code></td>
+                        <td><code style={{ color: '#0f766e', fontWeight: 600, fontSize: '0.78rem' }}>{formatDisplayId('BID', b.id)}</code></td>
                         <td>
                           <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{b.buyerCompany || b.buyerName}</div>
                         </td>
-                        <td style={{ fontSize: '0.82rem', color: '#6b7280' }}>{b.auctionId}</td>
+                        <td style={{ fontSize: '0.82rem', color: '#6b7280' }}>{formatDisplayId(b.productName, b.auctionId)}</td>
                         <td><strong>{b.quantity} Tons</strong></td>
                         <td style={{ color: '#22c55e', fontWeight: 700 }}>₹{b.pricePerTon?.toLocaleString()}</td>
                         <td style={{ fontWeight: 700 }}>₹{b.totalValue?.toLocaleString()}</td>
