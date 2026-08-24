@@ -4,6 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FaGavel, FaFilter, FaArrowUpRightFromSquare } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
+import { formatDisplayId } from '../utils/formatId';
 
 const statusMap = {
   pending:        { cls: 'badge-amber',   label: 'Pending Review' },

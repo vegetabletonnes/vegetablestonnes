@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FaGavel, FaCheck, FaXmark, FaArrowRightArrowLeft, FaCommentDots, FaChevronDown } from 'react-icons/fa6';
+import { formatDisplayId } from '../../utils/formatId';
 
 const STATUS_BADGE = {
   pending:        { cls: 'badge-amber',   label: 'Pending' },
