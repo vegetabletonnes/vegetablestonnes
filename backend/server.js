@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.js';
@@ -8,7 +9,7 @@ import orderRoutes from './routes/orders.js';
 import adminRoutes from './routes/admin.js';
 import inventoryRoutes from './routes/inventory.js';
 import notificationRoutes from './routes/notifications.js';
-import paymentRoutes from './routes/payments.js';
+import paymentRoutes, { handleCreateRazorpayOrder, handleVerifyRazorpayPayment } from './routes/payments.js';
 import invoiceRoutes from './routes/invoices.js';
 import uploadRoutes from './routes/upload.js';
 
@@ -30,6 +31,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Razorpay Standard Web Checkout top-level endpoints
+app.post('/api/create-order', handleCreateRazorpayOrder);
+app.post('/api/verify-payment', handleVerifyRazorpayPayment);
+
+// Modular Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/auctions', auctionRoutes);
@@ -47,6 +53,6 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`VegetableTonnes Backend v2 on http://localhost:${PORT}`);
+  console.log(`VegetableTonnes Backend running on http://localhost:${PORT}`);
   console.log(`CORS origins: ${allowedOrigins.join(', ')}`);
 });
