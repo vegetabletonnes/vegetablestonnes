@@ -132,7 +132,7 @@ export const handleVerifyRazorpayPayment = async (req, res) => {
           .update({ status: 'payment_successful' })
           .eq('id', orderId);
 
-        const paymentAmount = amount ? (Number(amount) > 1000 ? Number(amount) / 100 : Number(amount)) : (dbOrder?.total_value || 0);
+        const paymentAmount = dbOrder?.total_value ? Number(dbOrder.total_value) : (amount ? Number(amount) : 0);
 
         // Record payment in payments table
         const { data: newPayment } = await supabase
